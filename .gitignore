@@ -73,3 +73,20 @@ crashlytics-build.properties
 PacManOrcaAssessment/Library/Artifacts/03/0381e2a73d839e0af9a21bdb7c82f465
 /Library/
 PacManOrcaAssessment/Library/
+PacManOrcaAssessment/Logs/AssetImportWorker0.log
+# Unity generated folders
+/[Ll]ibrary/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Tt]emp/
+/[Uu]ser[Ss]ettings/
+/PacManOrcaAssessment/Logs
+/PacManOrcaAssessment/[Ll]ibrary/
+/PacManOrcaAssessment/[Oo]bj/
+/PacManOrcaAssessment/[Bb]uild/
+/PacManOrcaAssessment/[Bb]uilds/
+/PacManOrcaAssessment/[Ll]ogs/
+/PacManOrcaAssessment/[Tt]emp/
+/PacManOrcaAssessment/[Uu]ser[Ss]ettings/
