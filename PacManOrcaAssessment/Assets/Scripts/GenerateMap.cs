@@ -29,7 +29,6 @@ public class GenerateMap : MonoBehaviour
         {0,0,0,0,0,2,5,4,4,0,0,0,0,0},
         {0,0,0,0,0,2,5,4,4,0,3,4,4,0},
         {2,2,2,2,2,1,5,3,3,0,4,0,0,0},
-        {0,0,0,0,0,0,5,0,0,0,4,0,0,0},
     };
     
     // int[,] levelMap =
@@ -48,7 +47,6 @@ public class GenerateMap : MonoBehaviour
     //     {0,0,0,0,0,2,5,4,0,0,0,0,4,0},
     //     {0,0,0,0,0,2,5,4,0,0,0,3,3,0},
     //     {2,2,2,2,2,1,5,3,4,4,4,3,0,0},
-    //     {0,0,0,0,0,0,5,0,0,0,0,0,0,0},
     // };
 
     void Start()
@@ -58,6 +56,8 @@ public class GenerateMap : MonoBehaviour
 
     void BuildLevel()
     {
+        GameObject TopLeft = new GameObject("TopLeft");
+        TopLeft.transform.SetParent(this.transform);
 
         // Loop through the level map
         for (int y = 0; y < levelMap.GetLength(0); y++)
@@ -90,10 +90,29 @@ public class GenerateMap : MonoBehaviour
 
                 // Instantiate the corresponding tile prefab
                 Vector3 position = new Vector3(x * tileSize, -y * tileSize, 0); // Calculate position
-                GameObject tilePrefab = tilePrefabs[tileType - 1]; // Get prefab from array (1-indexed)
-                Instantiate(tilePrefab, position, rotation, transform); // Instantiate prefab
+                GameObject tilePrefab = Instantiate(tilePrefabs[tileType - 1], position, rotation, transform); // Instantiate prefab
+                tilePrefab.transform.SetParent(TopLeft.transform);
             }
         }
+        
+        //mirror topLeft map
+        GameObject TopRight = Instantiate(TopLeft);
+        TopRight.name = "TopRight";
+        TopRight.transform.localScale = new Vector3(-1, 1, 1);
+        TopRight.transform.localPosition = new Vector3(27 * tileSize, 0, 0);
+        TopRight.transform.SetParent(this.transform);
+        
+        GameObject DownRight = Instantiate(TopLeft);
+        DownRight.name = "DownRight";
+        DownRight.transform.localScale = new Vector3(-1, -1, 1);
+        DownRight.transform.localPosition = new Vector3(27 * tileSize, -28 * tileSize, 0);
+        DownRight.transform.SetParent(this.transform);
+        
+        GameObject DownLeft = Instantiate(TopLeft);
+        DownLeft.name = "DownLeft";
+        DownLeft.transform.localScale = new Vector3(1, -1, 1);
+        DownLeft.transform.localPosition = new Vector3(0, -28 * tileSize, 0);
+        DownLeft.transform.SetParent(this.transform);
     }
 
     private Quaternion rotateType1(int x, int y)
