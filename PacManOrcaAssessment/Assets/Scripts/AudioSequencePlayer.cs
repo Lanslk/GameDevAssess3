@@ -28,13 +28,11 @@ public class AudioSequencePlayer : MonoBehaviour
         if (!audioSources[currentAudioIndex].isPlaying)
         {
             // Move to the next audio clip
+            if (currentAudioIndex < audioSources.Length - 1) {
             currentAudioIndex++;
-            
-            // Play the next clip if available
-            if (currentAudioIndex < audioSources.Length)
-            {
-                PlayAudioClip(currentAudioIndex);
             }
+            
+            PlayAudioClip(currentAudioIndex);
         }
     }
 

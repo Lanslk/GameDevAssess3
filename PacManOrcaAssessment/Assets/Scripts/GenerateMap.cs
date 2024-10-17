@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class GenerateMap : MonoBehaviour
@@ -9,7 +10,7 @@ public class GenerateMap : MonoBehaviour
 
     public GameObject PacStudent;
     
-    public float tileSize = 0.00125f; // Size of each tile (in Unity units)
+    public float tileSize = 0.04f; // Size of each tile (in Unity units)
 
     // The provided level map array
     int[,] levelMap =
@@ -30,12 +31,28 @@ public class GenerateMap : MonoBehaviour
         {2,2,2,2,2,1,5,3,3,0,4,0,0,0},
         {0,0,0,0,0,0,5,0,0,0,4,0,0,0},
     };
+    
+    // int[,] levelMap =
+    // {
+    //     {1,2,2,2,2,2,2,2,2,2,2,2,2,2},
+    //     {2,5,5,5,5,5,5,5,5,3,4,3,5,3},
+    //     {2,5,3,4,4,3,5,3,4,3,0,4,5,3},
+    //     {2,5,4,0,0,4,5,4,0,0,0,4,5,5},
+    //     {2,6,3,4,4,3,5,3,4,4,4,3,5,3},
+    //     {2,5,5,5,5,5,5,5,5,5,5,5,5,4},
+    //     {2,5,3,4,4,3,5,3,4,4,4,3,5,4},
+    //     {2,5,3,4,4,3,5,3,4,4,4,3,5,4},
+    //     {2,5,5,5,5,5,5,5,5,5,5,5,5,3},
+    //     {1,2,2,2,2,1,5,5,5,3,4,4,3,0},
+    //     {0,0,0,0,0,2,5,3,4,3,0,0,4,0},
+    //     {0,0,0,0,0,2,5,4,0,0,0,0,4,0},
+    //     {0,0,0,0,0,2,5,4,0,0,0,3,3,0},
+    //     {2,2,2,2,2,1,5,3,4,4,4,3,0,0},
+    //     {0,0,0,0,0,0,5,0,0,0,0,0,0,0},
+    // };
 
     void Start()
     {
-        // Vector3 position = new Vector3(0.4f, -0.42f, 0f);
-        // Instantiate(PacStudent, position, Quaternion.identity, transform);
-        
         BuildLevel();
     }
 
@@ -50,101 +67,25 @@ public class GenerateMap : MonoBehaviour
                 int tileType = levelMap[y, x];
                 Quaternion rotation = Quaternion.identity; // Default rotation
                 
-                if (tileType == 0) continue;
-
-                if (tileType == 1 || tileType == 3)
-                {
-                    
-                    bool hasWallLeft = (x - 1 >= 0) && (levelMap[y, x - 1] == 2);
-                    bool hasWallRight = (x + 1 < levelMap.GetLength(1)) && (levelMap[y, x + 1] == 2);
-
-                    bool hasWallUp = (y - 1 >= 0) && (levelMap[y - 1, x] == 2);
-                    bool hasWallDown = (y + 1 < levelMap.GetLength(0)) && (levelMap[y + 1, x] == 2);
-                    
-                    if (hasWallUp && hasWallRight)
-                    {
-                        rotation = Quaternion.Euler(0, 0, 90);
-                    } 
-                    else if (hasWallUp && hasWallLeft)
-                    {
-                        rotation = Quaternion.Euler(0, 0, 180);
-                    } 
-                    else if (hasWallDown && hasWallLeft)
-                    {
-                        rotation = Quaternion.Euler(0, 0, 270);
-                    }
-                }
                 
-                if (tileType == 2)
+                switch(tileType) 
                 {
-                    // Check surroundings to see if the wall should be horizontal or vertical
-                    bool hasWallLeft = (x - 1 >= 0) && (levelMap[y, x - 1] == 2);
-                    bool hasWallRight = (x + 1 < levelMap.GetLength(1)) && (levelMap[y, x + 1] == 2);
-        
-                    
-                    if (hasWallLeft || hasWallRight) rotation = Quaternion.Euler(0, 0, 90);
-
-                }
-                
-                //TODO
-                if (tileType == 3)
-                {
-
-                    bool hasWallLeft = (x - 1 >= 0) && (levelMap[y, x - 1] == 4 || levelMap[y, x - 1] == 3);
-                    bool hasWallRight = (x + 1 < levelMap.GetLength(1)) &&
-                                        (levelMap[y, x + 1] == 4 || levelMap[y, x + 1] == 3);
-
-                    bool hasWallUp = (y - 1 >= 0) && (levelMap[y - 1, x] == 4 || levelMap[y - 1, x] == 3);
-                    bool hasWallDown = (y + 1 < levelMap.GetLength(0)) &&
-                                       (levelMap[y + 1, x] == 4 || levelMap[y + 1, x] == 3);
-
-                    //print(x + "," + y + " : " + hasWallLeft + hasWallRight + hasWallUp + hasWallDown);
-
-                    // Count how many are true
-                    int trueCount = (hasWallLeft ? 1 : 0) + (hasWallRight ? 1 : 0) + (hasWallUp ? 1 : 0) + (hasWallDown ? 1 : 0);
-
-                    if (trueCount == 1)
-                    {
-                        if (hasWallLeft) rotation = Quaternion.Euler(0, 0, 90);
-                        if (hasWallRight) rotation = Quaternion.Euler(0, 0, 0);
-                        if (hasWallUp) rotation = Quaternion.Euler(0, 0, 270);
-                        if (hasWallDown) rotation = Quaternion.Euler(0, 0, 180);
-                    }
-                    else if (trueCount == 2)
-                    {
-                        if (hasWallUp && hasWallRight)
-                        {
-                            rotation = Quaternion.Euler(0, 0, 90);
-                        }
-                        else if (hasWallUp && hasWallLeft)
-                        {
-                            rotation = Quaternion.Euler(0, 0, 180);
-                        }
-                        else if (hasWallDown && hasWallLeft)
-                        {
-                            rotation = Quaternion.Euler(0, 0, 270);
-                        }
-                    }
-                    else if (trueCount >= 3)
-                    {
-                        bool isUpV = (x - 1 >= 0) && judgeInnerSide(y - 1, x) && levelMap[y - 1, x] == 4;
-                        bool isRightV = (x + 1 < levelMap.GetLength(1)) && judgeInnerSide(y, x + 1) && levelMap[y, x + 1] == 4;
-                        
-                        if (isUpV && isRightV) rotation = Quaternion.Euler(0, 0, 180);
-                        if (!isUpV && isRightV) rotation = Quaternion.Euler(0, 0, 270);
-                        if (!isUpV && !isRightV) rotation = Quaternion.Euler(0, 0, 0);
-                        if (isUpV && !isRightV) rotation = Quaternion.Euler(0, 0, 90);
-                        print("x:" + x + " y:" + y);
-                        print(isUpV + "," + isRightV);
-                    }
-                }
-                
-                //TODO
-                if (tileType == 4)
-                {
-                    
-                    if (judgeInnerSide(x, y)) rotation = Quaternion.Euler(0, 0, 90);
-
+                    case 0:
+                        continue;
+                    case 1:
+                        rotation = rotateType1(x, y);
+                        break;
+                    case 2:
+                        rotation = rotateType2(x, y);
+                        break;
+                    case 3:
+                        rotation = rotateType3(x, y);
+                        break;
+                    case 4:
+                        rotation = rotateType4(x, y);
+                        break;
+                    default:
+                        break;
                 }
 
                 // Instantiate the corresponding tile prefab
@@ -155,11 +96,49 @@ public class GenerateMap : MonoBehaviour
         }
     }
 
-
-    // true = vertical, false = horizontal
-    bool judgeInnerSide(int x, int y)
+    private Quaternion rotateType1(int x, int y)
     {
-        // Check surroundings to see if the wall should be horizontal or vertical
+        bool hasWallLeft = (x - 1 >= 0) && (levelMap[y, x - 1] == 2);
+        bool hasWallRight = (x + 1 < levelMap.GetLength(1)) && (levelMap[y, x + 1] == 2);
+
+        bool hasWallUp = (y - 1 >= 0) && (levelMap[y - 1, x] == 2);
+        bool hasWallDown = (y + 1 < levelMap.GetLength(0)) && (levelMap[y + 1, x] == 2);
+                    
+        if (hasWallUp && hasWallRight)
+        {
+            return Quaternion.Euler(0, 0, 90);
+        } 
+        else if (hasWallUp && hasWallLeft)
+        {
+            return Quaternion.Euler(0, 0, 180);
+        } 
+        else if (hasWallDown && hasWallLeft)
+        {
+            return Quaternion.Euler(0, 0, 270);
+        }
+        else
+        {
+            return Quaternion.identity;
+        }
+    }
+
+    private Quaternion rotateType2(int x, int y)
+    {
+        bool hasWallLeft = (x - 1 >= 0) && (levelMap[y, x - 1] == 2);
+        bool hasWallRight = (x + 1 < levelMap.GetLength(1)) && (levelMap[y, x + 1] == 2);
+        if (hasWallLeft || hasWallRight)
+        {
+            return Quaternion.Euler(0, 0, 90);
+        } else
+        {
+            return Quaternion.identity;
+        }
+    }
+    
+    private Quaternion rotateType3(int x, int y)
+    {
+        Quaternion rotation = quaternion.identity;
+
         bool hasWallLeft = (x - 1 >= 0) && (levelMap[y, x - 1] == 4 || levelMap[y, x - 1] == 3);
         bool hasWallRight = (x + 1 < levelMap.GetLength(1)) &&
                             (levelMap[y, x + 1] == 4 || levelMap[y, x + 1] == 3);
@@ -167,13 +146,126 @@ public class GenerateMap : MonoBehaviour
         bool hasWallUp = (y - 1 >= 0) && (levelMap[y - 1, x] == 4 || levelMap[y - 1, x] == 3);
         bool hasWallDown = (y + 1 < levelMap.GetLength(0)) &&
                            (levelMap[y + 1, x] == 4 || levelMap[y + 1, x] == 3);
-
-                    
+        
+        // Count how many are true
         int trueCount = (hasWallLeft ? 1 : 0) + (hasWallRight ? 1 : 0) + (hasWallUp ? 1 : 0) + (hasWallDown ? 1 : 0);
 
-        if (trueCount == 2)
+        if (trueCount == 1)
         {
-            if (hasWallUp || hasWallDown) return true;
+            if (hasWallLeft)
+            {
+                if (y == levelMap.GetLength(2) - 1)
+                {
+                    rotation = Quaternion.Euler(0, 0, 270);
+                }
+                else
+                {
+                    rotation = Quaternion.Euler(0, 0, 180);
+                }
+                
+            }
+
+            if (hasWallRight)
+            {
+                if (y == levelMap.GetLength(2) - 1)
+                {
+                    rotation = Quaternion.Euler(0, 0, 0);
+                }
+                else
+                {
+                    rotation = Quaternion.Euler(0, 0, 90);
+                }
+            }
+
+            if (hasWallUp)
+            {
+                if (x == levelMap.GetLength(1) - 1)
+                {
+                    rotation = Quaternion.Euler(0, 0, 90);
+                }
+                else
+                {
+                    rotation = Quaternion.Euler(0, 0, 180);
+                }
+
+            }
+
+            if (hasWallDown)
+            {
+                if (x == levelMap.GetLength(1) - 1) {
+                	rotation = Quaternion.Euler(0, 0, 0);
+                }
+				else {
+					rotation = Quaternion.Euler(0, 0, 270);
+            	}
+			}
+        }
+        else if (trueCount == 2)
+        {
+            if (hasWallUp && hasWallRight)
+            {
+                rotation = Quaternion.Euler(0, 0, 90);
+            }
+            else if (hasWallUp && hasWallLeft)
+            {
+                rotation = Quaternion.Euler(0, 0, 180);
+            }
+            else if (hasWallDown && hasWallLeft)
+            {
+                rotation = Quaternion.Euler(0, 0, 270);
+            }
+        }
+        else if (trueCount >= 3)
+        {
+            bool isUpV = judgeInnerSide(x, y - 1) && levelMap[y - 1, x] == 4;
+            bool isLeftV = judgeInnerSide(x - 1, y) && levelMap[y, x - 1] == 4;
+            
+            if (isUpV && isLeftV) rotation = Quaternion.Euler(0, 0, 90);
+            if (!isUpV && isLeftV) rotation = Quaternion.Euler(0, 0, 0);
+            if (!isUpV && !isLeftV) rotation = Quaternion.Euler(0, 0, 270);
+            if (isUpV && !isLeftV) rotation = Quaternion.Euler(0, 0, 180);
+        }
+        return rotation;
+    }
+
+    private Quaternion rotateType4(int x, int y)
+    {
+        if (judgeInnerSide(x, y))
+        {
+            return Quaternion.Euler(0, 0, 90);
+        }
+        else
+        {
+            return Quaternion.identity;
+        }
+    }
+
+    bool jusdgeIsInnerWall(int item)
+    {
+        if (item == 4 || item == 3 || item == 7)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    // true = vertical, false = horizontal
+    bool judgeInnerSide(int x, int y)
+    {
+        // Check surroundings to see if the wall should be horizontal or vertical
+        bool hasWallLeft = jusdgeIsInnerWall(levelMap[y, x - 1]);
+        bool hasWallRight = (x + 1 == levelMap.GetLength(1)) || (jusdgeIsInnerWall(levelMap[y, x + 1]));
+        bool hasWallUp = jusdgeIsInnerWall(levelMap[y - 1, x]);
+        bool hasWallDown = (y + 1 == levelMap.GetLength(0)) || (jusdgeIsInnerWall(levelMap[y + 1, x]));
+        
+        int trueCount = (hasWallLeft ? 1 : 0) + (hasWallRight ? 1 : 0) + (hasWallUp ? 1 : 0) + (hasWallDown ? 1 : 0);
+        if (trueCount == 1 || trueCount == 2)
+        {
+            if (hasWallUp || hasWallDown)
+            {
+                return true;
+            }
         }
         else if (trueCount == 3)
         {
