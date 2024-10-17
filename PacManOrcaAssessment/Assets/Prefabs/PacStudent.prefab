@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7873742504755760945}
   - component: {fileID: 2725003025313549745}
   - component: {fileID: 1374765345147819416}
-  - component: {fileID: 238365388070931859}
+  - component: {fileID: 280654140635786607}
   m_Layer: 0
   m_Name: PacStudent
   m_TagString: Untagged
@@ -110,7 +110,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &238365388070931859
+--- !u!114 &280654140635786607
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -119,8 +119,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 3578561979516663867}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 836c57d47d22a46b68da545cece5adc1, type: 3}
+  m_Script: {fileID: 11500000, guid: 90d703aa36c1b452fa6e4bbd10a1576c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animatorController: {fileID: 1374765345147819416}
-  audioSource: {fileID: 0}
