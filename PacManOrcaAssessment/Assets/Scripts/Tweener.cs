@@ -43,6 +43,7 @@ public class Tweener : MonoBehaviour
 
                 // Update the position based on the time fraction
                 activeTween.Target.position = Vector3.Lerp(activeTween.StartPos, activeTween.EndPos, t);
+                //print(activeTween.StartPos + " - " + activeTween.EndPos + " - " + t);
 
                 // If the target has reached its destination, mark for removal
                 if (t >= 1f)
