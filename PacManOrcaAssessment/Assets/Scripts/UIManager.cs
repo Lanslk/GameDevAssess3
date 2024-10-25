@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,24 @@ public class UIManager : MonoBehaviour
 {
     public RectTransform loadingPanel;
     private Tweener tweener;
+    
+    public bool firstLoad = true;
+    
+    private static UIManager instance;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
     
     // Start is called before the first frame update
     void Start()
@@ -33,12 +52,12 @@ public class UIManager : MonoBehaviour
 
     public void LoadFirstLevel()
     {
-        StartCoroutine(ShowLoadingAndLoadScene("MainGameScene"));
+        StartCoroutine(ShowLoadingAndLoadScene("MainGameScene", true));
     }
     
     public void LoadSecondLevel()
     {
-        StartCoroutine(ShowLoadingAndLoadScene("Level2GameScene"));
+        StartCoroutine(ShowLoadingAndLoadScene("Level2GameScene", true));
     }
     
     public void ShowLoadingScreen()
@@ -46,10 +65,14 @@ public class UIManager : MonoBehaviour
         tweener.AddTween(loadingPanel,loadingPanel.anchoredPosition, new Vector3(0,0,0),0.5f);
     }
     
-    private IEnumerator ShowLoadingAndLoadScene(string sceneName)
+    private IEnumerator ShowLoadingAndLoadScene(string sceneName, bool showLoadingScreen)
     {
+        print("Load:" + sceneName);
         // Show the Loading Screen (lerp into position)
-        ShowLoadingScreen();
+        if (showLoadingScreen)
+        {
+            ShowLoadingScreen();
+        }
 
         // Wait for 1 second
         yield return new WaitForSeconds(1f);
@@ -58,7 +81,11 @@ public class UIManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
 
-        DontDestroyOnLoad(this.gameObject); // Keep UIManager persistent between scenes
+        if (firstLoad)
+        {
+            DontDestroyOnLoad(this.gameObject); // Keep UIManager persistent between scenes
+            firstLoad = false;
+        }
 
         //Wait until the scene has finished loading
         while (!asyncLoad.isDone)
@@ -75,22 +102,51 @@ public class UIManager : MonoBehaviour
     
     public void QuitGame()
     {
-        UnityEditor.EditorApplication.isPlaying = false;
-        //if run in built application
-        Application.Quit();
+        //UnityEditor.EditorApplication.isPlaying = false;
+        //Application.Quit();
+
+        
+        
+        StartCoroutine(ShowLoadingAndLoadScene("StartScene", true));
+        //SceneManager.sceneLoaded += OnSceneLoaded;
+        //AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("StartScene", LoadSceneMode.Single);
     }
     
     public void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "WalkingScene")
+        if (scene.name == "MainGameScene" || scene.name == "Level2GameScene")
         {
             GameObject quitButtonObject = GameObject.FindGameObjectWithTag("QuitButton");
             if (quitButtonObject != null)
             {
                 Button quitButton = quitButtonObject.GetComponent<Button>();
                 
+                quitButton.onClick.RemoveListener(QuitGame);
                 quitButton.onClick.AddListener(QuitGame);
+                
             }
         }
+
+        if (scene.name == "StartScene")
+        {
+            GameObject buttonObject = GameObject.FindGameObjectWithTag("Level1Button");
+            if (buttonObject != null)
+            {
+                Button quitButton = buttonObject.GetComponent<Button>();
+                
+                quitButton.onClick.RemoveListener(LoadFirstLevel);
+                quitButton.onClick.AddListener(LoadFirstLevel);
+            }
+            
+            buttonObject = GameObject.FindGameObjectWithTag("Level2Button");
+            if (buttonObject != null)
+            {
+                Button quitButton = buttonObject.GetComponent<Button>();
+                
+                quitButton.onClick.RemoveListener(LoadSecondLevel);
+                quitButton.onClick.AddListener(LoadSecondLevel);
+            }
+        }
+        
     }
 }

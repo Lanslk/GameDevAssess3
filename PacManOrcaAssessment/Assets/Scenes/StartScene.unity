@@ -500,6 +500,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadingPanel: {fileID: 83170689}
+  firstLoad: 1
 --- !u!4 &381140922
 Transform:
   m_ObjectHideFlags: 0
@@ -826,7 +827,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 10.7, y: -3.47, z: 0}
-  m_LocalScale: {x: 50, y: 50, z: 50}
+  m_LocalScale: {x: 50, y: 50, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1279,7 +1280,7 @@ GameObject:
   - component: {fileID: 695087926}
   m_Layer: 5
   m_Name: Level2Button
-  m_TagString: Untagged
+  m_TagString: Level2Button
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1582,7 +1583,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -1810,7 +1811,7 @@ GameObject:
   - component: {fileID: 1056462027}
   m_Layer: 5
   m_Name: Level1Button
-  m_TagString: Untagged
+  m_TagString: Level1Button
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2313,7 +2314,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2725003025313549745, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: m_SortingLayer
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2725003025313549745, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: m_SortingOrder
@@ -2321,7 +2322,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2725003025313549745, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: m_SortingLayerID
-      value: 0
+      value: -2131913343
       objectReference: {fileID: 0}
     - target: {fileID: 3578561979516663867, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: m_Name
@@ -2341,7 +2342,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7873742504755760945, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 7.5
+      value: 7.499998
       objectReference: {fileID: 0}
     - target: {fileID: 7873742504755760945, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: m_LocalPosition.y
