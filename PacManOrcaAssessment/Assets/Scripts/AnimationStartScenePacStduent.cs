@@ -35,7 +35,8 @@ public class AnimationStartScenePacStudent : MonoBehaviour
 
         itemList.Add(item);
         
-
+        transform.localScale = new Vector3(50, 50, 0);
+        
         // Start moving the object to the first target position
         MoveToNextPosition();
     }
@@ -84,23 +85,15 @@ public class AnimationStartScenePacStudent : MonoBehaviour
         switch (direction)
         {
             case 1:
-                transform.localScale = new Vector3(50, 50, 0);
-                transform.rotation = Quaternion.Euler(0, 0, 0);
-                animatorController.SetInteger("Direction", 1);
+                animatorController.SetInteger("Direction", 3);
                 break;
             case 2:
-                transform.localScale = new Vector3(50, 50, 0);
-                transform.rotation = Quaternion.Euler(0, 0, 90);
                 animatorController.SetInteger("Direction", 2);
                 break;
             case 3:
-                transform.localScale = new Vector3(-50, 50, 0);
-                transform.rotation = Quaternion.Euler(0, 0, 0);
-                animatorController.SetInteger("Direction", 3);
+                animatorController.SetInteger("Direction", 1);
                 break;
             case 4:
-                transform.localScale = new Vector3(50, 50, 0);
-                transform.rotation = Quaternion.Euler(0, 0, -90);
                 animatorController.SetInteger("Direction", 4);
                 break;
             case 5:
