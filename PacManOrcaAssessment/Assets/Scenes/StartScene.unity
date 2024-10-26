@@ -1945,7 +1945,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1296511601}
   m_Layer: 0
-  m_Name: ParentPacStudent
+  m_Name: ParentPacStudent(for scale)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

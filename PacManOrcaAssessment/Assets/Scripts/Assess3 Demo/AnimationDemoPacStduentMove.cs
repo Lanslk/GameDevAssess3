@@ -7,8 +7,6 @@ public class AnimationDemoPacStudentMove: MonoBehaviour
     public Animator animatorController;
 
     private float timer = 0f;
-
-    private int act = 1;
     
     [SerializeField]
     private GameObject item;

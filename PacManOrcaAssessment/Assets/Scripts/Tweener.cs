@@ -8,8 +8,6 @@ public class Tweener : MonoBehaviour
     //private Tween activeTween;
     private List<Tween> activeTweens = new List<Tween>();
 
-    private float speed = 0.1f;
-
     // Example method to add a tween
     public Boolean AddTween(Transform targetObject, Vector3 startPos, Vector3 endPos, float duration)
     {

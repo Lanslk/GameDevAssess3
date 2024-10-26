@@ -28,8 +28,6 @@ public class AnimationStartSceneGhost : MonoBehaviour
     private float moveShortSide = 1.4f;
     private float moveLongSide = 3f;
 
-    private bool isFirstMove = true; // Flag to track the first move
-
     void Start()
     {
         tweener = GetComponent<Tweener>();

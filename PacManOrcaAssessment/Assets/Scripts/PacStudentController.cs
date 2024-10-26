@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -15,6 +16,24 @@ public class PacStudentController : MonoBehaviour
     private Vector2 currentInput;
     private Vector2 lastInput;
 
+    private int[,] levelMap =
+    {
+        {1,2,2,2,2,2,2,2,2,2,2,2,2,7},
+        {2,5,5,5,5,5,5,5,5,5,5,5,5,4},
+        {2,5,3,4,4,3,5,3,4,4,4,3,5,4},
+        {2,6,4,0,0,4,5,4,0,0,0,4,5,4},
+        {2,5,3,4,4,3,5,3,4,4,4,3,5,3},
+        {2,5,5,5,5,5,5,5,5,5,5,5,5,5},
+        {2,5,3,4,4,3,5,3,3,5,3,4,4,4},
+        {2,5,3,4,4,3,5,4,4,5,3,4,4,3},
+        {2,5,5,5,5,5,5,4,4,5,5,5,5,4},
+        {1,2,2,2,2,1,5,4,3,4,4,3,0,4},
+        {0,0,0,0,0,2,5,4,3,4,4,3,0,3},
+        {0,0,0,0,0,2,5,4,4,0,0,0,0,0},
+        {0,0,0,0,0,2,5,4,4,0,3,4,4,0},
+        {2,2,2,2,2,1,5,3,3,0,4,0,0,0},
+    };
+    
     void Start()
     {
         startPosition = transform.position;
@@ -29,40 +48,67 @@ public class PacStudentController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.W))
         {
             lastInput = new Vector2(0, 0.04f);
-            animatorController.SetInteger("Direction", 4);
+            //animatorController.SetInteger("Direction", 4);
         }
         else if (Input.GetKeyDown(KeyCode.A))
         {
             lastInput = new Vector2(-0.04f, 0);
-            animatorController.SetInteger("Direction", 3);
+            //animatorController.SetInteger("Direction", 3);
         }
         else if (Input.GetKeyDown(KeyCode.S))
         {
             lastInput = new Vector2(0, -0.04f);
-            animatorController.SetInteger("Direction", 2);
+            //animatorController.SetInteger("Direction", 2);
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
             lastInput = new Vector2(0.04f, 0);
-            animatorController.SetInteger("Direction", 1);
+            //animatorController.SetInteger("Direction", 1);
         }
 
         // If PacStudent is not currently moving, check input and move if possible.
         if (!isMoving)
         {
-            // Check if the direction from last input is walkable.
             if (CanMoveToPosition((Vector2)transform.position + lastInput))
             {
+                changeDirection(lastInput);
                 currentInput = lastInput; // Set current input to last input
                 StartCoroutine(MoveToPosition((Vector2)transform.position + lastInput));
             }
-            // If the direction from current input is walkable, move there.
             else if (CanMoveToPosition((Vector2)transform.position + currentInput))
             {
+                changeDirection(currentInput);
                 StartCoroutine(MoveToPosition((Vector2)transform.position + currentInput));
+            }
+            else
+            {
+                animatorController.SetBool("isStop", true);
+                transform.rotation = Quaternion.Euler(0, 0, 90);
             }
         }
     }
+    
+    void changeDirection(Vector2 movement) 
+    {
+        animatorController.SetBool("isStop", false);
+        if (movement.x == 0 && movement.y == 0.04f)
+        {
+            animatorController.SetInteger("Direction", 4);
+        }
+        else if (movement.x == -0.04f && movement.y == 0f)
+        {
+            animatorController.SetInteger("Direction", 3);
+        }
+        else if (movement.x == 0 && movement.y == -0.04f)
+        {
+            animatorController.SetInteger("Direction", 2);
+        }
+        else if (movement.x == 0.04f && movement.y == 0)
+        {
+            animatorController.SetInteger("Direction", 1);
+        }
+    }
+        
 
     // Coroutine to move PacStudent between grid positions using linear lerping
     IEnumerator MoveToPosition(Vector2 destination)
@@ -80,14 +126,15 @@ public class PacStudentController : MonoBehaviour
             yield return null; // Wait for next frame.
         }
 
-        transform.position = targetPosition; // Ensure final position is exact.
-        isMoving = false; // Movement finished
+        transform.position = targetPosition;
+        isMoving = false;
     }
 
     // Method to check if the next position is walkable based on level map
     bool CanMoveToPosition(Vector2 position)
     {
-        // Implement your logic here to check if the grid position is walkable (e.g., not a wall).
-        return true;
+        int x = Math.Abs((int)Math.Round((position.x - 0.2f) / 0.04f));
+        int y = Math.Abs((int)Math.Round((position.y + 0.2f) / 0.04f));
+        return levelMap[y, x] == 5 || levelMap[y, x] == 0 || levelMap[y, x] == 6;
     }
 }
