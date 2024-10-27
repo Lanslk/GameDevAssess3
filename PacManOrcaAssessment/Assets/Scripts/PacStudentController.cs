@@ -15,6 +15,8 @@ public class PacStudentController : MonoBehaviour
     
     private Vector2 currentInput;
     private Vector2 lastInput;
+    
+    private int nextGrid = 0;
 
     private int[,] levelMap =
     {
@@ -38,12 +40,15 @@ public class PacStudentController : MonoBehaviour
     public AudioSource movementAudioSource;
     public AudioClip[] movementClips;
     
+    public ParticleSystem dustParticles;
+    
     void Start()
     {
         startPosition = transform.position;
         targetPosition = transform.position;
         currentInput = Vector2.zero;
         lastInput = Vector2.zero;
+        dustParticles.Stop();
     }
 
     void Update()
@@ -52,34 +57,30 @@ public class PacStudentController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.W))
         {
             lastInput = new Vector2(0, 0.04f);
-            //animatorController.SetInteger("Direction", 4);
         }
         else if (Input.GetKeyDown(KeyCode.A))
         {
             lastInput = new Vector2(-0.04f, 0);
-            //animatorController.SetInteger("Direction", 3);
         }
         else if (Input.GetKeyDown(KeyCode.S))
         {
             lastInput = new Vector2(0, -0.04f);
-            //animatorController.SetInteger("Direction", 2);
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
             lastInput = new Vector2(0.04f, 0);
-            //animatorController.SetInteger("Direction", 1);
         }
 
         // If PacStudent is not currently moving, check input and move if possible.
         if (!isMoving)
         {
-            if (CanMoveToPosition((Vector2)transform.position + lastInput))
+            if (lastInput != Vector2.zero && CanMoveToPosition((Vector2)transform.position + lastInput))
             {
                 changeDirection(lastInput);
                 currentInput = lastInput; // Set current input to last input
                 StartCoroutine(MoveToPosition((Vector2)transform.position + lastInput));
             }
-            else if (CanMoveToPosition((Vector2)transform.position + currentInput))
+            else if (currentInput != Vector2.zero && CanMoveToPosition((Vector2)transform.position + currentInput))
             {
                 changeDirection(currentInput);
                 StartCoroutine(MoveToPosition((Vector2)transform.position + currentInput));
@@ -92,6 +93,34 @@ public class PacStudentController : MonoBehaviour
                 transform.rotation = Quaternion.Euler(0, 0, 90);
             }
         }
+        
+        MovementAudio();
+    }
+    
+    void MovementAudio()
+    {
+        if (animatorController.GetBool("isStop") && movementAudioSource.isPlaying == true)
+        {
+            movementAudioSource.Stop();
+            dustParticles.Stop();
+        } else if (!animatorController.GetBool("isStop") && movementAudioSource.isPlaying == false) {       
+            if (nextGrid == 0)
+            {
+                movementAudioSource.clip = movementClips[0];
+                //footstepAudioSource.volume = movementSqrMagnitude;               
+                movementAudioSource.Play();
+                dustParticles.Play();
+            } else if (nextGrid == 5) 
+            {
+                movementAudioSource.clip = movementClips[1];
+                movementAudioSource.Play();
+                dustParticles.Play();
+            } else {
+                movementAudioSource.Stop();
+                dustParticles.Stop();
+            }
+        }
+            
     }
     
     void changeDirection(Vector2 movement) 
@@ -152,6 +181,7 @@ public class PacStudentController : MonoBehaviour
         {
             y = levelMap.GetLength(0) * 2 - 2 - y;
         }
+        nextGrid = levelMap[y, x];
             
         return levelMap[y, x] == 5 || levelMap[y, x] == 0 || levelMap[y, x] == 6;
     }
