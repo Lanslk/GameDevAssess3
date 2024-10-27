@@ -32,7 +32,11 @@ public class PacStudentController : MonoBehaviour
         {0,0,0,0,0,2,5,4,4,0,0,0,0,0},
         {0,0,0,0,0,2,5,4,4,0,3,4,4,0},
         {2,2,2,2,2,1,5,3,3,0,4,0,0,0},
+        {0,0,0,0,0,0,5,0,0,0,4,0,0,0},
     };
+    
+    public AudioSource movementAudioSource;
+    public AudioClip[] movementClips;
     
     void Start()
     {
@@ -83,6 +87,8 @@ public class PacStudentController : MonoBehaviour
             else
             {
                 animatorController.SetBool("isStop", true);
+                animatorController.SetFloat("StopDirection", (float)animatorController.GetInteger("Direction"));
+                
                 transform.rotation = Quaternion.Euler(0, 0, 90);
             }
         }
@@ -135,6 +141,18 @@ public class PacStudentController : MonoBehaviour
     {
         int x = Math.Abs((int)Math.Round((position.x - 0.2f) / 0.04f));
         int y = Math.Abs((int)Math.Round((position.y + 0.2f) / 0.04f));
+        
+        // Mirror X and Y for positions outside the top-left quadrant
+        if (x >= levelMap.GetLength(1))
+        {
+            x = levelMap.GetLength(1) * 2 - 1 - x;
+        }
+    
+        if (y >= levelMap.GetLength(0))
+        {
+            y = levelMap.GetLength(0) * 2 - 2 - y;
+        }
+            
         return levelMap[y, x] == 5 || levelMap[y, x] == 0 || levelMap[y, x] == 6;
     }
 }
