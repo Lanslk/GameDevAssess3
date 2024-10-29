@@ -56,6 +56,9 @@ public class PacStudentController : MonoBehaviour
     private float CollideTimer = 0f;
     private Boolean StartCooldown = false;
     
+    // 0 = no teleport, 1 = teleport to right, 2 = teleport to left
+    private int teleport = 0;
+    
     void Start()
     {
         if (!isStartScene)
@@ -214,57 +217,66 @@ public class PacStudentController : MonoBehaviour
     IEnumerator MoveToPosition(Vector2 destination, float speed, string source)
     {
         // Teleporting
-        int x = (int)Math.Round((destination.x - 0.2f) / 0.04f);
-        int y = (int)Math.Round((destination.y + 0.2f) / 0.04f);
-        int nowPosX = (int)Math.Round((transform.position.x - 0.2f) / 0.04f);
-        int nowPosY = (int)Math.Round((transform.position.y + 0.2f) / 0.04f);
-        
-        if (y == -14 && nowPosY == -14) {
-            print("x:" + x + " y:" + y);
-            print("nowPosX:" + nowPosX + " nowPosY:" + nowPosY);
-            if (x == -1 && nowPosX == 0)
-            {
-                
-            } else if (x == -1 && nowPosX == 0) {
-            }
-        }
-        
-        
-        
-        isMoving = true;
-        float elapsedTime = 0f;
-
-        startPosition = transform.position;
-        targetPosition = destination;
-
-        while (elapsedTime < lerpTime)
+        if (teleport == 1)
         {
-            transform.position = Vector2.Lerp(startPosition, targetPosition, elapsedTime / lerpTime);
-            elapsedTime += Time.deltaTime * speed;
-            yield return null; // Wait for next frame.
-        }
+            transform.position = new Vector3(1.28f, -0.76f, 0f);
+        } else if (teleport == 2)
+        {
+            transform.position = new Vector3(0.2f, -0.76f, 0f);
+        } else {
+            isMoving = true;
+            float elapsedTime = 0f;
 
-        isMoving = false;
+            startPosition = transform.position;
+            targetPosition = destination;
+
+            while (elapsedTime < lerpTime)
+            {
+                transform.position = Vector2.Lerp(startPosition, targetPosition, elapsedTime / lerpTime);
+                elapsedTime += Time.deltaTime * speed;
+                yield return null; // Wait for next frame.
+            }
+
+            isMoving = false;
+        }
     }
 
     // Method to check if the next position is walkable based on level map
     bool CanMoveToPosition(Vector2 position)
     {
-        int x = Math.Abs((int)Math.Round((position.x - 0.2f) / 0.04f));
-        int y = Math.Abs((int)Math.Round((position.y + 0.2f) / 0.04f));
+        int x = (int)Math.Round((position.x - 0.2f) / 0.04f);
+        int y = (int)Math.Round((position.y + 0.2f) / 0.04f);
         
-        // Mirror X and Y for positions outside the top-left quadrant
-        if (x >= levelMap.GetLength(1))
+        int nowPosX = (int)Math.Round((transform.position.x - 0.2f) / 0.04f);
+        int nowPosY = (int)Math.Round((transform.position.y + 0.2f) / 0.04f);
+        
+        if (y == -14 && nowPosY == -14 && x == -1 && nowPosX == 0) {
+            teleport = 1;
+            x = 13;
+            y = 14;
+        } else if (y == -14 && nowPosY == -14 && x == 28 && nowPosX == 27)
         {
-            x = levelMap.GetLength(1) * 2 - 1 - x;
+            teleport = 2;
+            x = 0;
+            y = 14;
+        } else {
+            teleport = 0;
+            // Mirror X and Y for positions outside the top-left quadrant
+            x = Math.Abs(x);
+            y = Math.Abs(y);
+            if (x >= levelMap.GetLength(1))
+            {
+                x = levelMap.GetLength(1) * 2 - 1 - x;
+            }
+                            
+            if (y >= levelMap.GetLength(0))
+            {
+                y = levelMap.GetLength(0) * 2 - 2 - y;
+            }
         }
-    
-        if (y >= levelMap.GetLength(0))
-        {
-            y = levelMap.GetLength(0) * 2 - 2 - y;
-        }
+        
         nextGrid = levelMap[y, x];
-
+        
         Boolean canMove = levelMap[y, x] == 5 || levelMap[y, x] == 0 || levelMap[y, x] == 6;
         if (canMove)
         {
