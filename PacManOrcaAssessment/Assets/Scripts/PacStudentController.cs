@@ -8,6 +8,8 @@ public class PacStudentController : MonoBehaviour
     
     [SerializeField]
     private float moveSpeed = 3f; // Speed at which PacStudent moves between grid positions.
+    [SerializeField]
+    private float moveBackSpeed = 10f;
     private Vector2 startPosition;
     private Vector2 targetPosition;
     private bool isMoving = false;
@@ -15,8 +17,11 @@ public class PacStudentController : MonoBehaviour
     
     private Vector2 currentInput;
     private Vector2 lastInput;
+    private Vector2 lastInputBeforeCollide;
     
     private int nextGrid = 0;
+
+    private Boolean isCollide = false;
 
     private int[,] levelMap =
     {
@@ -40,19 +45,64 @@ public class PacStudentController : MonoBehaviour
     public AudioSource movementAudioSource;
     public AudioClip[] movementClips;
     
-    public ParticleSystem dustParticles;
+    private ParticleSystem dustParticles;
+    private ParticleSystem dustParticlesCollide;
+
+    public Boolean isStartScene;
+
+    private Vector2 collidePosition;
+    private Vector2 backDestination;
+    
+    private float CollideTimer = 0f;
+    private Boolean StartCooldown = false;
     
     void Start()
     {
+        if (!isStartScene)
+        {
+            dustParticles = transform.Find("Particle System").GetComponent<ParticleSystem>();
+            GameObject particleObject = GameObject.FindWithTag("CollideParticle");
+            if (particleObject != null)
+            {
+                dustParticlesCollide = particleObject.GetComponent<ParticleSystem>();
+            }
+            dustParticles.Stop();
+            dustParticlesCollide.Stop();
+        }
+
         startPosition = transform.position;
         targetPosition = transform.position;
         currentInput = Vector2.zero;
         lastInput = Vector2.zero;
-        dustParticles.Stop();
+        CollideTimer = Time.deltaTime;
     }
 
     void Update()
     {
+        if (isStartScene)
+        {
+            animatorController.SetBool("isStop", false);
+            return;
+        }
+
+        if (isCollide && Vector2.Distance(transform.position, backDestination) > 0.0005f)
+        {
+            return;
+        }
+        
+        if (StartCooldown)
+        {
+            CollideTimer += Time.deltaTime;
+            if (CollideTimer > 0.01f)
+            {
+                StartCooldown = false;
+                CollideTimer = 0f;
+            } else
+            {
+                return;
+            }
+        }
+        
         // Gather player input
         if (Input.GetKeyDown(KeyCode.W))
         {
@@ -72,18 +122,18 @@ public class PacStudentController : MonoBehaviour
         }
 
         // If PacStudent is not currently moving, check input and move if possible.
-        if (!isMoving)
+        if (!isMoving && lastInput != Vector2.zero)
         {
             if (lastInput != Vector2.zero && CanMoveToPosition((Vector2)transform.position + lastInput))
             {
-                changeDirection(lastInput);
+                ChangeDirection(lastInput);
                 currentInput = lastInput; // Set current input to last input
-                StartCoroutine(MoveToPosition((Vector2)transform.position + lastInput));
+                StartCoroutine(MoveToPosition((Vector2)transform.position + lastInput, moveSpeed, "lastInput"));
             }
             else if (currentInput != Vector2.zero && CanMoveToPosition((Vector2)transform.position + currentInput))
             {
-                changeDirection(currentInput);
-                StartCoroutine(MoveToPosition((Vector2)transform.position + currentInput));
+                ChangeDirection(currentInput);
+                StartCoroutine(MoveToPosition((Vector2)transform.position + currentInput, moveSpeed, "currentInput"));
             }
             else
             {
@@ -91,39 +141,54 @@ public class PacStudentController : MonoBehaviour
                 animatorController.SetFloat("StopDirection", (float)animatorController.GetInteger("Direction"));
                 
                 transform.rotation = Quaternion.Euler(0, 0, 90);
+                if (!isCollide) {
+                    StartCoroutine(MoveToPosition((Vector2)transform.position + lastInput, moveSpeed, "before Collide"));
+                }
+
             }
         }
         
         MovementAudio();
     }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        Debug.Log("Triggered by: " + other.gameObject.name);
+        isCollide = true;
+        StartCooldown = true;  
+
+        backDestination = (Vector2)other.gameObject.transform.position - lastInputBeforeCollide;
+
+        StartCoroutine(MoveToPosition(backDestination, moveBackSpeed, "moveBack"));
+        
+        dustParticlesCollide.transform.position = new Vector3(collidePosition.x, collidePosition.y, 0f);
+        dustParticlesCollide.Emit(10);
+        movementAudioSource.Stop();
+        movementAudioSource.clip = movementClips[2];
+        movementAudioSource.Play();
+        
+    }
     
     void MovementAudio()
     {
-        if (animatorController.GetBool("isStop") && movementAudioSource.isPlaying == true)
+        if (!animatorController.GetBool("isStop") && movementAudioSource.isPlaying == false)
         {
-            movementAudioSource.Stop();
-            dustParticles.Stop();
-        } else if (!animatorController.GetBool("isStop") && movementAudioSource.isPlaying == false) {       
             if (nextGrid == 0)
             {
                 movementAudioSource.clip = movementClips[0];
-                //footstepAudioSource.volume = movementSqrMagnitude;               
                 movementAudioSource.Play();
                 dustParticles.Play();
-            } else if (nextGrid == 5) 
+            }
+            else if (nextGrid == 5)
             {
                 movementAudioSource.clip = movementClips[1];
                 movementAudioSource.Play();
                 dustParticles.Play();
-            } else {
-                movementAudioSource.Stop();
-                dustParticles.Stop();
             }
         }
-            
     }
     
-    void changeDirection(Vector2 movement) 
+    void ChangeDirection(Vector2 movement) 
     {
         animatorController.SetBool("isStop", false);
         if (movement.x == 0 && movement.y == 0.04f)
@@ -146,8 +211,26 @@ public class PacStudentController : MonoBehaviour
         
 
     // Coroutine to move PacStudent between grid positions using linear lerping
-    IEnumerator MoveToPosition(Vector2 destination)
+    IEnumerator MoveToPosition(Vector2 destination, float speed, string source)
     {
+        // Teleporting
+        int x = (int)Math.Round((destination.x - 0.2f) / 0.04f);
+        int y = (int)Math.Round((destination.y + 0.2f) / 0.04f);
+        int nowPosX = (int)Math.Round((transform.position.x - 0.2f) / 0.04f);
+        int nowPosY = (int)Math.Round((transform.position.y + 0.2f) / 0.04f);
+        
+        if (y == -14 && nowPosY == -14) {
+            print("x:" + x + " y:" + y);
+            print("nowPosX:" + nowPosX + " nowPosY:" + nowPosY);
+            if (x == -1 && nowPosX == 0)
+            {
+                
+            } else if (x == -1 && nowPosX == 0) {
+            }
+        }
+        
+        
+        
         isMoving = true;
         float elapsedTime = 0f;
 
@@ -157,11 +240,10 @@ public class PacStudentController : MonoBehaviour
         while (elapsedTime < lerpTime)
         {
             transform.position = Vector2.Lerp(startPosition, targetPosition, elapsedTime / lerpTime);
-            elapsedTime += Time.deltaTime * moveSpeed;
+            elapsedTime += Time.deltaTime * speed;
             yield return null; // Wait for next frame.
         }
 
-        transform.position = targetPosition;
         isMoving = false;
     }
 
@@ -182,7 +264,17 @@ public class PacStudentController : MonoBehaviour
             y = levelMap.GetLength(0) * 2 - 2 - y;
         }
         nextGrid = levelMap[y, x];
-            
-        return levelMap[y, x] == 5 || levelMap[y, x] == 0 || levelMap[y, x] == 6;
+
+        Boolean canMove = levelMap[y, x] == 5 || levelMap[y, x] == 0 || levelMap[y, x] == 6;
+        if (canMove)
+        {
+            isCollide = false;
+            lastInputBeforeCollide = lastInput;
+        }
+        else
+        {
+            collidePosition = position;
+        }
+        return canMove;
     }
 }

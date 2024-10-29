@@ -7,6 +7,8 @@ TagManager:
   - QuitButton
   - Level1Button
   - Level2Button
+  - Wall
+  - CollideParticle
   layers:
   - Default
   - TransparentFX
