@@ -41,6 +41,8 @@ public class PacStudentController : MonoBehaviour
         {2,2,2,2,2,1,5,3,3,0,4,0,0,0},
         {0,0,0,0,0,0,5,0,0,0,4,0,0,0},
     };
+
+    private int[,] expandLevelMap = new int[29, 28];
     
     public AudioSource movementAudioSource;
     public AudioClip[] movementClips;
@@ -71,6 +73,8 @@ public class PacStudentController : MonoBehaviour
             }
             dustParticles.Stop();
             dustParticlesCollide.Stop();
+
+            doExpandMap();
         }
 
         startPosition = transform.position;
@@ -152,6 +156,39 @@ public class PacStudentController : MonoBehaviour
         }
         
         MovementAudio();
+    }
+
+    void doExpandMap()
+    {
+        for (int y = 0; y < 14; y++)
+        {
+            for (int x = 0; x < 14; x++)
+            {
+                expandLevelMap[y, x] = levelMap[y, x];
+                
+                expandLevelMap[y, 27 - x] = levelMap[y, x];
+                
+                expandLevelMap[28 - y, x] = levelMap[y, x];
+                
+                expandLevelMap[28 - y, 27 - x] = levelMap[y, x];
+            }
+        }
+        
+        for (int x = 0; x < 14; x++)
+        {
+            expandLevelMap[14, x] = levelMap[14, x];
+            expandLevelMap[14, 27 - x] = levelMap[14, x];
+        }
+        
+        for (int y = 0; y < 29; y++)
+        {
+            string row = "";
+            for (int x = 0; x < 28; x++)
+            {
+                row += expandLevelMap[y, x] + " ";
+            }
+            Debug.Log(row);
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -244,40 +281,32 @@ public class PacStudentController : MonoBehaviour
     // Method to check if the next position is walkable based on level map
     bool CanMoveToPosition(Vector2 position)
     {
-        int x = (int)Math.Round((position.x - 0.2f) / 0.04f);
-        int y = (int)Math.Round((position.y + 0.2f) / 0.04f);
+        int nextX = (int)Math.Round((position.x - 0.2f) / 0.04f);
+        int nextY = (int)Math.Round((position.y + 0.2f) / 0.04f);
         
         int nowPosX = (int)Math.Round((transform.position.x - 0.2f) / 0.04f);
         int nowPosY = (int)Math.Round((transform.position.y + 0.2f) / 0.04f);
         
-        if (y == -14 && nowPosY == -14 && x == -1 && nowPosX == 0) {
+        int arrayX = 0;
+        int arrayY = 0;
+        
+        if (nextY == -14 && nowPosY == -14 && nextX == -1 && nowPosX == 0) {
             teleport = 1;
-            x = 13;
-            y = 14;
-        } else if (y == -14 && nowPosY == -14 && x == 28 && nowPosX == 27)
+            arrayX = 13;
+            arrayY = 14;
+        } else if (nextY == -14 && nowPosY == -14 && nextX == 28 && nowPosX == 27)
         {
             teleport = 2;
-            x = 0;
-            y = 14;
+            arrayX = 0;
+            arrayY = 14;
         } else {
             teleport = 0;
-            // Mirror X and Y for positions outside the top-left quadrant
-            x = Math.Abs(x);
-            y = Math.Abs(y);
-            if (x >= levelMap.GetLength(1))
-            {
-                x = levelMap.GetLength(1) * 2 - 1 - x;
-            }
-                            
-            if (y >= levelMap.GetLength(0))
-            {
-                y = levelMap.GetLength(0) * 2 - 2 - y;
-            }
+            arrayX = Math.Abs(nextX);
+            arrayY = Math.Abs(nextY);
         }
+        nextGrid = expandLevelMap[arrayY, arrayX];
         
-        nextGrid = levelMap[y, x];
-        
-        Boolean canMove = levelMap[y, x] == 5 || levelMap[y, x] == 0 || levelMap[y, x] == 6;
+        Boolean canMove = nextGrid == 5 || nextGrid == 0 || nextGrid == 6;
         if (canMove)
         {
             isCollide = false;
@@ -287,6 +316,16 @@ public class PacStudentController : MonoBehaviour
         {
             collidePosition = position;
         }
+
+        if (nextGrid == 5)
+        {
+            eatPellets();
+        }
         return canMove;
+    }
+
+    void eatPellets()
+    {
+        //TODO
     }
 }
