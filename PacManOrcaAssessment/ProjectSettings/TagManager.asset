@@ -10,6 +10,9 @@ TagManager:
   - Wall
   - CollideParticle
   - Pellet
+  - Cherry
+  - PowerPellet
+  - Ghost
   layers:
   - Default
   - TransparentFX

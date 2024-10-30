@@ -7,6 +7,12 @@ public class PacStudentController : MonoBehaviour
 {
     public Animator animatorController;
     public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI ghostScaredTimerText;
+    public AudioClip scaredMusic;
+    public AudioClip normalMusic;
+    
+    private AudioSource backgroundMusicSource;
+
     
     [SerializeField]
     private float moveSpeed = 3f; // Speed at which PacStudent moves between grid positions.
@@ -58,30 +64,37 @@ public class PacStudentController : MonoBehaviour
     private Vector2 backDestination;
     
     private float CollideTimer = 0f;
-    private Boolean StartCooldown = false;
+    private Boolean StartCooldown = false; //cooldown aftwer collide on the wall
     
     // 0 = no teleport, 1 = teleport to right, 2 = teleport to left
     private int teleport = 0;
     
     private int score = 0;
     
+    private GameObject[] ghosts;
+    private float ghostScaredTimer = 0f;
+    private Boolean startGhostScaredTimer = false;
+    
     void Start()
     {
-        if (!isStartScene)
+        if (isStartScene)
         {
-            UpdateScoreUI();
-            dustParticles = transform.Find("Particle System").GetComponent<ParticleSystem>();
-            GameObject particleObject = GameObject.FindWithTag("CollideParticle");
-            if (particleObject != null)
-            {
-                dustParticlesCollide = particleObject.GetComponent<ParticleSystem>();
-            }
-            dustParticles.Stop();
-            dustParticlesCollide.Stop();
-
-            doExpandMap();
+            return;
         }
+        
+        UpdateScoreUI();
+        dustParticles = transform.Find("Particle System").GetComponent<ParticleSystem>();
+        GameObject particleObject = GameObject.FindWithTag("CollideParticle");
+        if (particleObject != null)
+        {
+            dustParticlesCollide = particleObject.GetComponent<ParticleSystem>();
+        }
+        dustParticles.Stop();
+        dustParticlesCollide.Stop();
 
+        doExpandMap();
+        ghosts = GameObject.FindGameObjectsWithTag("Ghost");
+        
         startPosition = transform.position;
         targetPosition = transform.position;
         currentInput = Vector2.zero;
@@ -92,17 +105,21 @@ public class PacStudentController : MonoBehaviour
         eatPellets(1, 1);
         movementAudioSource.clip = movementClips[1];
         movementAudioSource.Play();
+        
+        ghosts = GameObject.FindGameObjectsWithTag("Ghost");
+        backgroundMusicSource = Camera.main.GetComponent<AudioSource>();
+        ghostScaredTimerText.enabled = false;
     }
 
     void Update()
     {
-        UpdateScoreUI();
-        
         if (isStartScene)
         {
             animatorController.SetBool("isStop", false);
             return;
         }
+        
+        UpdateScoreUI();
 
         if (isCollide && Vector2.Distance(transform.position, backDestination) > 0.0005f)
         {
@@ -168,6 +185,47 @@ public class PacStudentController : MonoBehaviour
         }
         
         MovementAudio();
+        
+        if (startGhostScaredTimer)
+        {
+            ghostScaredTimer += Time.deltaTime;
+            
+            ghostScaredTimerText.enabled = true;
+        
+            int currentCountDown = 10 - (int)ghostScaredTimer;
+            ghostScaredTimerText.text = currentCountDown.ToString();
+        
+            if (ghostScaredTimer > 10f)
+            {
+                ghostScaredTimer = 0f;
+                startGhostScaredTimer = false;
+                ghostScaredTimerText.enabled = false;
+                
+                foreach (GameObject ghost in ghosts)
+                {
+                    Animator ghostAnimator = ghost.GetComponent<Animator>();
+                    if (ghostAnimator != null)
+                    {
+                        ghostAnimator.SetInteger("Direction", 1);
+                    }
+                }
+                if (backgroundMusicSource != null && scaredMusic != null)
+                {
+                    backgroundMusicSource.clip = normalMusic;
+                    backgroundMusicSource.Play();
+                }
+            } else if (ghostScaredTimer > 7f)
+            {
+                foreach (GameObject ghost in ghosts)
+                {
+                    Animator ghostAnimator = ghost.GetComponent<Animator>();
+                    if (ghostAnimator != null)
+                    {
+                        ghostAnimator.SetInteger("Direction", 6);
+                    }
+                }
+            }
+        }
     }
 
     void doExpandMap()
@@ -199,7 +257,7 @@ public class PacStudentController : MonoBehaviour
             {
                 row += expandLevelMap[y, x] + " ";
             }
-            Debug.Log(row);
+            //Debug.Log(row);
         }
     }
 
@@ -339,10 +397,39 @@ public class PacStudentController : MonoBehaviour
         if (nextGrid == 5)
         {
             eatPellets(arrayX, arrayY);
+        } else if (nextGrid == 6) {
+            eatPowerPellets(arrayX, arrayY);
         }
         return canMove;
     }
 
+    void eatPowerPellets(int arrayX, int arrayY)
+    {
+        expandLevelMap[arrayY, arrayX] = 0;
+        float positionX = 0.2f + 0.04f * arrayX;
+        float positionY = -0.2f - 0.04f * arrayY;
+        GameObject pelletObj = FindGameObjectByTagAndPosition("PowerPellet", new Vector3(positionX, positionY, 0));
+        Destroy(pelletObj);
+        
+        foreach (GameObject ghost in ghosts)
+        {
+            Animator ghostAnimator = ghost.GetComponent<Animator>();
+            if (ghostAnimator != null)
+            {
+                ghostAnimator.SetInteger("Direction", 5);
+            }
+        }
+        
+        if (backgroundMusicSource != null && scaredMusic != null)
+        {
+            backgroundMusicSource.clip = scaredMusic;
+            backgroundMusicSource.Play();
+        }
+        
+        startGhostScaredTimer = true;
+        ghostScaredTimer = 0f;
+    }
+    
     void eatPellets(int arrayX, int arrayY)
     {
         score += 10;
