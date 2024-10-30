@@ -25,7 +25,6 @@ public class PacStudentController : MonoBehaviour
     
     private Vector2 currentInput;
     private Vector2 lastInput;
-    private Vector2 lastInputBeforeCollide;
     
     private int nextGrid = 0;
 
@@ -178,7 +177,7 @@ public class PacStudentController : MonoBehaviour
                 
                 transform.rotation = Quaternion.Euler(0, 0, 90);
                 if (!isCollide) {
-                    StartCoroutine(MoveToPosition((Vector2)transform.position + lastInput, moveSpeed, "before Collide"));
+                    StartCoroutine(MoveToPosition((Vector2)transform.position + currentInput, moveSpeed, "before Collide"));
                 }
 
             }
@@ -269,7 +268,7 @@ public class PacStudentController : MonoBehaviour
             isCollide = true;
             StartCooldown = true;  
     
-            backDestination = (Vector2)other.gameObject.transform.position - lastInputBeforeCollide;
+            backDestination = (Vector2)other.gameObject.transform.position - currentInput;
     
             StartCoroutine(MoveToPosition(backDestination, moveBackSpeed, "moveBack"));
             
@@ -376,7 +375,8 @@ public class PacStudentController : MonoBehaviour
             teleport = 2;
             arrayX = 0;
             arrayY = 14;
-        } else {
+        } else 
+        {
             teleport = 0;
             arrayX = Math.Abs(nextX);
             arrayY = Math.Abs(nextY);
@@ -387,7 +387,6 @@ public class PacStudentController : MonoBehaviour
         if (canMove)
         {
             isCollide = false;
-            lastInputBeforeCollide = lastInput;
         }
         else
         {
