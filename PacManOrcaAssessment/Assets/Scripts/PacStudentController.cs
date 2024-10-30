@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using TMPro;
 
 public class PacStudentController : MonoBehaviour
 {
     public Animator animatorController;
+    public TextMeshProUGUI scoreText;
     
     [SerializeField]
     private float moveSpeed = 3f; // Speed at which PacStudent moves between grid positions.
@@ -61,10 +63,13 @@ public class PacStudentController : MonoBehaviour
     // 0 = no teleport, 1 = teleport to right, 2 = teleport to left
     private int teleport = 0;
     
+    private int score = 0;
+    
     void Start()
     {
         if (!isStartScene)
         {
+            UpdateScoreUI();
             dustParticles = transform.Find("Particle System").GetComponent<ParticleSystem>();
             GameObject particleObject = GameObject.FindWithTag("CollideParticle");
             if (particleObject != null)
@@ -82,10 +87,17 @@ public class PacStudentController : MonoBehaviour
         currentInput = Vector2.zero;
         lastInput = Vector2.zero;
         CollideTimer = Time.deltaTime;
+        
+        //eat first pellet
+        eatPellets(1, 1);
+        movementAudioSource.clip = movementClips[1];
+        movementAudioSource.Play();
     }
 
     void Update()
     {
+        UpdateScoreUI();
+        
         if (isStartScene)
         {
             animatorController.SetBool("isStop", false);
@@ -319,13 +331,42 @@ public class PacStudentController : MonoBehaviour
 
         if (nextGrid == 5)
         {
-            eatPellets();
+            eatPellets(arrayX, arrayY);
         }
         return canMove;
     }
 
-    void eatPellets()
+    void eatPellets(int arrayX, int arrayY)
     {
-        //TODO
+        score += 10;
+        UpdateScoreUI();
+        
+        expandLevelMap[arrayY, arrayX] = 0;
+        float positionX = 0.2f + 0.04f * arrayX;
+        float positionY = -0.2f - 0.04f * arrayY;
+        GameObject pelletObj = FindGameObjectByTagAndPosition("Pellet", new Vector3(positionX, positionY, 0));
+        Destroy(pelletObj);
+    }
+    
+    void UpdateScoreUI()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = "" + score;
+        }
+    }
+    
+    GameObject FindGameObjectByTagAndPosition(string tag, Vector3 targetPosition, float tolerance = 0.01f)
+    {
+        GameObject[] gameObjectsWithTag = GameObject.FindGameObjectsWithTag(tag);
+    
+        foreach (GameObject obj in gameObjectsWithTag)
+        {
+            if (Vector3.Distance(obj.transform.position, targetPosition) <= tolerance)
+            {
+                return obj;
+            }
+        }
+        return null;
     }
 }
