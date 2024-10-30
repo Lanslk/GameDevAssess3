@@ -205,19 +205,26 @@ public class PacStudentController : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("Triggered by: " + other.gameObject.name);
-        isCollide = true;
-        StartCooldown = true;  
-
-        backDestination = (Vector2)other.gameObject.transform.position - lastInputBeforeCollide;
-
-        StartCoroutine(MoveToPosition(backDestination, moveBackSpeed, "moveBack"));
-        
-        dustParticlesCollide.transform.position = new Vector3(collidePosition.x, collidePosition.y, 0f);
-        dustParticlesCollide.Emit(10);
-        movementAudioSource.Stop();
-        movementAudioSource.clip = movementClips[2];
-        movementAudioSource.Play();
+        if (other.gameObject.tag == "Wall")
+        {
+            Debug.Log("Triggered by: " + other.gameObject.name);
+            isCollide = true;
+            StartCooldown = true;  
+    
+            backDestination = (Vector2)other.gameObject.transform.position - lastInputBeforeCollide;
+    
+            StartCoroutine(MoveToPosition(backDestination, moveBackSpeed, "moveBack"));
+            
+            dustParticlesCollide.transform.position = new Vector3(collidePosition.x, collidePosition.y, 0f);
+            dustParticlesCollide.Emit(10);
+            movementAudioSource.Stop();
+            movementAudioSource.clip = movementClips[2];
+            movementAudioSource.Play();
+        } else if (other.gameObject.tag == "Cherry") {
+            score += 100;
+            UpdateScoreUI();
+            Destroy(other.gameObject);
+        }
         
     }
     
