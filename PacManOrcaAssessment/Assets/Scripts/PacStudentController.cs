@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -56,6 +57,7 @@ public class PacStudentController : MonoBehaviour
     
     private ParticleSystem dustParticles;
     private ParticleSystem dustParticlesCollide;
+    private List<ParticleSystem> dustParticlesDie = new List<ParticleSystem>();
 
     public Boolean isStartScene;
 
@@ -63,7 +65,8 @@ public class PacStudentController : MonoBehaviour
     private Vector2 backDestination;
     
     private float CollideTimer = 0f;
-    private Boolean StartCooldown = false; //cooldown aftwer collide on the wall
+    private Boolean StartCooldownCollide = false; //cooldown after collide on the wall
+    private Boolean StartCoolDownDie = false;  //cooldown after collide on the ghost
     
     // 0 = no teleport, 1 = teleport to right, 2 = teleport to left
     private int teleport = 0;
@@ -73,6 +76,8 @@ public class PacStudentController : MonoBehaviour
     private GameObject[] ghosts;
     private float ghostScaredTimer = 0f;
     private Boolean startGhostScaredTimer = false;
+    
+    private int life = 3;
     
     void Start()
     {
@@ -125,18 +130,20 @@ public class PacStudentController : MonoBehaviour
             return;
         }
         
-        if (StartCooldown)
+        if (StartCooldownCollide)
         {
             CollideTimer += Time.deltaTime;
             if (CollideTimer > 0.01f)
             {
-                StartCooldown = false;
+                StartCooldownCollide = false;
                 CollideTimer = 0f;
             } else
             {
                 return;
             }
         }
+        
+        if (coolDownDie()) { return; }
         
         // Gather player input
         if (Input.GetKeyDown(KeyCode.W))
@@ -226,6 +233,48 @@ public class PacStudentController : MonoBehaviour
             }
         }
     }
+    
+    Boolean coolDownDie()
+    {
+        if (StartCoolDownDie)
+        {
+            CollideTimer += Time.deltaTime;
+            if (CollideTimer > 1f)
+            {   
+                CollideTimer = 0f;
+                StartCoolDownDie = false;  
+                animatorController.SetBool("isStop", true);
+                animatorController.SetInteger("Direction", 1);
+                animatorController.SetFloat("StopDirection", 1f);
+                currentInput = Vector2.zero;
+                lastInput = Vector2.zero;
+                transform.position = new Vector3(0.24f, -0.24f, 0f);
+                
+                GameObject lifeObject = GameObject.Find("lifeIndicator" + life);
+                Destroy(lifeObject);
+                
+                foreach (ParticleSystem ps in dustParticlesDie)
+                {
+                    if (ps != null)
+                    {
+                        Destroy(ps.gameObject);
+                    }
+                }
+                dustParticles.Clear();
+                    
+                life -= 1;
+                if (life == 0)
+                {
+                    print("gameOver");
+                    //Game over
+                }
+            } else 
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     void doExpandMap()
     {
@@ -266,7 +315,7 @@ public class PacStudentController : MonoBehaviour
         {
             Debug.Log("Triggered by: " + other.gameObject.name);
             isCollide = true;
-            StartCooldown = true;  
+            StartCooldownCollide = true;  
     
             backDestination = (Vector2)other.gameObject.transform.position - currentInput;
     
@@ -281,8 +330,39 @@ public class PacStudentController : MonoBehaviour
             score += 100;
             UpdateScoreUI();
             Destroy(other.gameObject);
+        } else if (other.gameObject.tag == "Ghost") {
+            //Die
+            Animator collideGhostAnimator = other.gameObject.GetComponent<Animator>();
+            if (collideGhostAnimator != null)
+            {
+                if (collideGhostAnimator.GetInteger("Direction") <= 4) {
+                    animatorController.SetFloat("StopDirection", (float)animatorController.GetInteger("Direction"));
+                    animatorController.SetInteger("Direction", 5);
+                    StartCoolDownDie = true;
+                    EmitDieParticles();
+                }
+            }
         }
         
+    }
+    
+    void EmitDieParticles()
+    {
+        Vector3[] offsets = new Vector3[]
+        {
+            new Vector3(0.05f, 0f, 0f),
+            new Vector3(0f, -0.05f, 0f),
+            new Vector3(-0.05f, 0f, 0f),
+            new Vector3(0f, 0.05f, 0f),
+            new Vector3(0f, 0f, 0f)
+        };
+    
+        foreach (Vector3 offset in offsets)
+        {
+            ParticleSystem newDustParticle = Instantiate(dustParticlesCollide, transform.position + offset, Quaternion.identity);
+            newDustParticle.Emit(10);
+            dustParticlesDie.Add(newDustParticle);
+        }
     }
     
     void MovementAudio()

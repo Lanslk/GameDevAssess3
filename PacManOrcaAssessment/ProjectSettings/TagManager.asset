@@ -13,6 +13,7 @@ TagManager:
   - Cherry
   - PowerPellet
   - Ghost
+  - LifeIndicator
   layers:
   - Default
   - TransparentFX
