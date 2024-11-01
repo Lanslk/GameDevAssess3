@@ -9,6 +9,8 @@ public class PacStudentController : MonoBehaviour
     public Animator animatorController;
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI ghostScaredTimerText;
+    public TextMeshProUGUI startGameCountDownText;
+    public TextMeshProUGUI gameCountDownText;
     public AudioClip scaredMusic;
     public AudioClip ghostDeadMusic;
     public AudioClip normalMusic;
@@ -85,6 +87,8 @@ public class PacStudentController : MonoBehaviour
     
     private int life = 3;
     
+    private float gameTimer = 0f;
+    
     void Start()
     {
         if (isStartScene)
@@ -110,10 +114,7 @@ public class PacStudentController : MonoBehaviour
         lastInput = Vector2.zero;
         CollideTimer = Time.deltaTime;
         
-        //eat first pellet
-        eatPellets(1, 1);
-        movementAudioSource.clip = movementClips[1];
-        movementAudioSource.Play();
+        
         
         for (int i = 0; i < 4; i++)
         {
@@ -131,6 +132,8 @@ public class PacStudentController : MonoBehaviour
             animatorController.SetBool("isStop", false);
             return;
         }
+        
+        if (gameTimerCountDown()) { return;}
         
         UpdateScoreUI();
 
@@ -205,6 +208,35 @@ public class PacStudentController : MonoBehaviour
         
         ghostScaredCountDown();
         
+    }
+        
+    Boolean gameTimerCountDown() {
+        gameTimer += Time.deltaTime;
+        if (gameTimer < 5f) {
+            int timeText = 4 - (int)gameTimer;
+            startGameCountDownText.text = "" + timeText;
+            startGameCountDownText.enabled = true;
+            if (gameTimer > 4f) {
+                startGameCountDownText.text = "GO!";
+            }
+            return true;
+        } else {
+            if (!backgroundMusicSource.isPlaying) {
+                backgroundMusicSource.Play();
+                eatPellets(1, 1);
+                movementAudioSource.clip = movementClips[1];
+                movementAudioSource.Play();
+            }
+            startGameCountDownText.enabled = false;
+            
+            float elapsedTime = gameTimer - 5f;
+            
+            TimeSpan timeSpan = TimeSpan.FromSeconds(elapsedTime);
+            string timeFormatted = string.Format("{0:D2}:{1:D2}:{2:D2}", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
+        
+            gameCountDownText.text = timeFormatted;
+            return false;
+        }
     }
     
     void ghostScaredCountDown()
@@ -587,10 +619,7 @@ public class PacStudentController : MonoBehaviour
     
     void UpdateScoreUI()
     {
-        if (scoreText != null)
-        {
-            scoreText.text = "" + score;
-        }
+        scoreText.text = "" + score;
     }
     
     GameObject FindGameObjectByTagAndPosition(string tag, Vector3 targetPosition, float tolerance = 0.01f)

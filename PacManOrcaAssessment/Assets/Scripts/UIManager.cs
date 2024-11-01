@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public RectTransform loadingPanel;
+    public GameObject loadingPanel;
+    public TextMeshProUGUI highScoreText;
+    public TextMeshProUGUI highScoreTimeText;
+    private RectTransform loadingRect;
     private Tweener tweener;
     
     public bool firstLoad = true;
@@ -33,9 +37,13 @@ public class UIManager : MonoBehaviour
     {
         tweener = GetComponent<Tweener>();
 
-        loadingPanel.sizeDelta = new Vector2(Screen.width, Screen.height);
-        
+        loadingRect = loadingPanel.GetComponent<RectTransform>();
+        loadingPanel.SetActive(true);
+        loadingRect.sizeDelta = new Vector2(Screen.width, Screen.height);
+                
         HideLoadingScreen();
+        
+        LoadHighScoreAndTime();
     }
 
     // Update is called once per frame
@@ -44,10 +52,19 @@ public class UIManager : MonoBehaviour
         
     }
     
+    private void LoadHighScoreAndTime()
+    {
+        int highScore = PlayerPrefs.GetInt("HighScore", 0);
+        string highScoreTime = PlayerPrefs.GetString("HighScoreTime", "00:00:00");
+        
+        highScoreText.text = "High Score: " + highScore + "\n" + "Time: " + highScoreTime;
+        //highScoreTimeText.text = "Time: " + highScoreTime;
+    }
+    
     private void HideLoadingScreen()
     {
         Vector2 hiddenPosition = new Vector2(0, -Screen.height);
-        tweener.AddTween(loadingPanel, loadingPanel.anchoredPosition, hiddenPosition, 0.5f);
+        tweener.AddTween(loadingRect, loadingRect.anchoredPosition, hiddenPosition, 0.5f);
     }
 
     public void LoadFirstLevel()
@@ -62,7 +79,7 @@ public class UIManager : MonoBehaviour
     
     public void ShowLoadingScreen()
     {
-        tweener.AddTween(loadingPanel,loadingPanel.anchoredPosition, new Vector3(0,0,0),0.5f);
+        tweener.AddTween(loadingRect,loadingRect.anchoredPosition, new Vector3(0,0,0),0.5f);
     }
     
     private IEnumerator ShowLoadingAndLoadScene(string sceneName, bool showLoadingScreen)
