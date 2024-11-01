@@ -10,6 +10,7 @@ public class PacStudentController : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI ghostScaredTimerText;
     public AudioClip scaredMusic;
+    public AudioClip ghostDeadMusic;
     public AudioClip normalMusic;
     
     private AudioSource backgroundMusicSource;
@@ -73,9 +74,14 @@ public class PacStudentController : MonoBehaviour
     
     private int score = 0;
     
-    private GameObject[] ghosts;
+    private List<GameObject> ghosts = new List<GameObject>();
     private float ghostScaredTimer = 0f;
     private Boolean startGhostScaredTimer = false;
+    
+    private List<float> ghostDieTimer = new List<float> {0f, 0f, 0f, 0f};
+    private List<bool> startGhostDieTimer = new List<bool> {false, false, false, false};
+    private Dictionary<int, string> ghostMap = new Dictionary<int, string>{
+        { 0, "Ship-blue" },{ 1, "Ship-green" },{ 2, "Ship-red" },{ 3, "Ship-yellow" } };
     
     private int life = 3;
     
@@ -97,7 +103,6 @@ public class PacStudentController : MonoBehaviour
         dustParticlesCollide.Stop();
 
         doExpandMap();
-        ghosts = GameObject.FindGameObjectsWithTag("Ghost");
         
         startPosition = transform.position;
         targetPosition = transform.position;
@@ -110,7 +115,11 @@ public class PacStudentController : MonoBehaviour
         movementAudioSource.clip = movementClips[1];
         movementAudioSource.Play();
         
-        ghosts = GameObject.FindGameObjectsWithTag("Ghost");
+        for (int i = 0; i < 4; i++)
+        {
+           ghosts.Add(GameObject.Find(ghostMap[i]));
+        }
+        
         backgroundMusicSource = Camera.main.GetComponent<AudioSource>();
         ghostScaredTimerText.enabled = false;
     }
@@ -144,6 +153,8 @@ public class PacStudentController : MonoBehaviour
         }
         
         if (coolDownDie()) { return; }
+        
+        ghostDieCountDown();
         
         // Gather player input
         if (Input.GetKeyDown(KeyCode.W))
@@ -192,6 +203,12 @@ public class PacStudentController : MonoBehaviour
         
         MovementAudio();
         
+        ghostScaredCountDown();
+        
+    }
+    
+    void ghostScaredCountDown()
+    {
         if (startGhostScaredTimer)
         {
             ghostScaredTimer += Time.deltaTime;
@@ -210,22 +227,23 @@ public class PacStudentController : MonoBehaviour
                 foreach (GameObject ghost in ghosts)
                 {
                     Animator ghostAnimator = ghost.GetComponent<Animator>();
-                    if (ghostAnimator != null)
+                    if (ghostAnimator != null && ghostAnimator.GetInteger("Direction") == 6)
                     {
                         ghostAnimator.SetInteger("Direction", 1);
                     }
                 }
-                if (backgroundMusicSource != null && scaredMusic != null)
+                
+                if (!startGhostDieTimer.Contains(true))
                 {
                     backgroundMusicSource.clip = normalMusic;
                     backgroundMusicSource.Play();
                 }
             } else if (ghostScaredTimer > 7f)
             {
-                foreach (GameObject ghost in ghosts)
+                for (int i = 0; i < ghosts.Count; i++)
                 {
-                    Animator ghostAnimator = ghost.GetComponent<Animator>();
-                    if (ghostAnimator != null)
+                    Animator ghostAnimator = ghosts[i].GetComponent<Animator>();
+                    if (ghostAnimator != null && ghostAnimator.GetInteger("Direction") == 5)
                     {
                         ghostAnimator.SetInteger("Direction", 6);
                     }
@@ -328,10 +346,8 @@ public class PacStudentController : MonoBehaviour
             movementAudioSource.Play();
         } else if (other.gameObject.tag == "Cherry") {
             score += 100;
-            UpdateScoreUI();
             Destroy(other.gameObject);
         } else if (other.gameObject.tag == "Ghost") {
-            //Die
             Animator collideGhostAnimator = other.gameObject.GetComponent<Animator>();
             if (collideGhostAnimator != null)
             {
@@ -339,11 +355,63 @@ public class PacStudentController : MonoBehaviour
                     animatorController.SetFloat("StopDirection", (float)animatorController.GetInteger("Direction"));
                     animatorController.SetInteger("Direction", 5);
                     StartCoolDownDie = true;
+                    movementAudioSource.Stop();
+                    movementAudioSource.clip = movementClips[3];
+                    movementAudioSource.Play();
                     EmitDieParticles();
+                } else if (collideGhostAnimator.GetInteger("Direction") == 5 ||collideGhostAnimator.GetInteger("Direction") == 6) {
+                    collideGhostAnimator.SetInteger("Direction", 7);
+                    
+                    backgroundMusicSource.clip = ghostDeadMusic;
+                    backgroundMusicSource.Play();
+                    score += 300;
+                    
+                    foreach (KeyValuePair<int, string> kvp in ghostMap)
+                    {
+                        int key = kvp.Key;
+                        string value = kvp.Value;
+                        if (other.gameObject.name == value) 
+                        {
+                            startGhostDieTimer[key] = true;
+                        }
+                    }
                 }
             }
         }
-        
+    }
+    
+    void ghostDieCountDown()
+    {
+        for (int i = 0; i <  startGhostDieTimer.Count; i++)
+        {
+            if (startGhostDieTimer[i]) {
+                ghostDieTimer[i] += Time.deltaTime;
+                
+                if (ghostDieTimer[i] > 5f) {
+                    string name = "";
+                    name = ghostMap[i];
+                    
+                    print(name);
+                    
+                    GameObject ghostObj = GameObject.Find(name);
+                    if (ghostObj != null) {
+                        Animator ghostAnimator = ghostObj.GetComponent<Animator>();
+                        ghostAnimator.SetInteger("Direction", 1);
+                    }
+                    startGhostDieTimer[i] = false;
+                    ghostDieTimer[i] = 0f;
+                    
+                    if (!startGhostDieTimer.Contains(true)) {
+                        if (startGhostScaredTimer) {
+                            backgroundMusicSource.clip = scaredMusic;
+                        } else {
+                            backgroundMusicSource.clip = normalMusic;
+                        }
+                        backgroundMusicSource.Play();
+                    }
+                }
+            }
+        }
     }
     
     void EmitDieParticles()
@@ -493,17 +561,14 @@ public class PacStudentController : MonoBehaviour
         foreach (GameObject ghost in ghosts)
         {
             Animator ghostAnimator = ghost.GetComponent<Animator>();
-            if (ghostAnimator != null)
+            if (ghostAnimator != null && ghostAnimator.GetInteger("Direction") != 7)
             {
                 ghostAnimator.SetInteger("Direction", 5);
             }
         }
         
-        if (backgroundMusicSource != null && scaredMusic != null)
-        {
-            backgroundMusicSource.clip = scaredMusic;
-            backgroundMusicSource.Play();
-        }
+        backgroundMusicSource.clip = scaredMusic;
+        backgroundMusicSource.Play();
         
         startGhostScaredTimer = true;
         ghostScaredTimer = 0f;
@@ -512,7 +577,6 @@ public class PacStudentController : MonoBehaviour
     void eatPellets(int arrayX, int arrayY)
     {
         score += 10;
-        UpdateScoreUI();
         
         expandLevelMap[arrayY, arrayX] = 0;
         float positionX = 0.2f + 0.04f * arrayX;

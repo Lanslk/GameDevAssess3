@@ -7064,11 +7064,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8966424081196203842, guid: c491e5542c48c4ea78fda07768a43f60, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.656
+      value: 0.318
       objectReference: {fileID: 0}
     - target: {fileID: 8966424081196203842, guid: c491e5542c48c4ea78fda07768a43f60, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.639
+      value: -0.394
       objectReference: {fileID: 0}
     - target: {fileID: 8966424081196203842, guid: c491e5542c48c4ea78fda07768a43f60, type: 3}
       propertyPath: m_LocalPosition.z
@@ -9709,6 +9709,10 @@ PrefabInstance:
       value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 2317844533569935121, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
+      propertyPath: ghostDeadMusic
+      value: 
+      objectReference: {fileID: 8300000, guid: 53a1a5bab1c504470b6437a7d696ba36, type: 3}
+    - target: {fileID: 2317844533569935121, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: dustParticlesCollide
       value: 
       objectReference: {fileID: 298006562}
@@ -9718,12 +9722,16 @@ PrefabInstance:
       objectReference: {fileID: 1516652798}
     - target: {fileID: 2317844533569935121, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: movementClips.Array.size
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 2317844533569935121, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: 'movementClips.Array.data[2]'
       value: 
       objectReference: {fileID: 8300000, guid: 06cd278c64873409c854d8878ca3786f, type: 3}
+    - target: {fileID: 2317844533569935121, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
+      propertyPath: 'movementClips.Array.data[3]'
+      value: 
+      objectReference: {fileID: 8300000, guid: cbf28ee0486484bdaaf85875e1a71507, type: 3}
     - target: {fileID: 3578561979516663867, guid: 61e3ea40ecd9c46128e8db918505c7b3, type: 3}
       propertyPath: m_Name
       value: PacStudent
