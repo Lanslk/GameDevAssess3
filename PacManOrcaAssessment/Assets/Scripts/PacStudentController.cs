@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class PacStudentController : MonoBehaviour
@@ -11,6 +12,7 @@ public class PacStudentController : MonoBehaviour
     public TextMeshProUGUI ghostScaredTimerText;
     public TextMeshProUGUI startGameCountDownText;
     public TextMeshProUGUI gameCountDownText;
+    public TextMeshProUGUI gameOverText;
     public AudioClip scaredMusic;
     public AudioClip ghostDeadMusic;
     public AudioClip normalMusic;
@@ -86,8 +88,11 @@ public class PacStudentController : MonoBehaviour
         { 0, "Ship-blue" },{ 1, "Ship-green" },{ 2, "Ship-red" },{ 3, "Ship-yellow" } };
     
     private int life = 3;
+    private int pellets = 0;
     
     private float gameTimer = 0f;
+    private bool isGameOver = false;
+    private float gameOverTimer = 0f;
     
     void Start()
     {
@@ -134,6 +139,20 @@ public class PacStudentController : MonoBehaviour
         }
         
         if (gameTimerCountDown()) { return;}
+        
+        if (isGameOver)
+        {
+            if (gameOverTimer > 3f) {
+                GameObject quitButtonObject = GameObject.Find("QuitButton");
+                Button quitButton = quitButtonObject.GetComponent<Button>();
+                quitButton.onClick.Invoke();
+                gameObject.SetActive(false);
+            } else
+            {
+                gameOverTimer += Time.deltaTime;
+                return;
+            }
+        }
         
         UpdateScoreUI();
 
@@ -208,9 +227,48 @@ public class PacStudentController : MonoBehaviour
         
         ghostScaredCountDown();
         
+        gameOverCheck();
+    }
+    
+    void gameOverCheck()
+    {
+        if (life == 0 || pellets == 0) {
+            //gameObject.SetActive(false);
+            gameOverText.enabled = true;
+            CheckAndSaveHighScore();
+            isGameOver = true;
+        }
+    }
+    
+    void CheckAndSaveHighScore()
+    {
+        int savedHighScore = PlayerPrefs.GetInt("HighScore", 0);
+        float savedHighScoreTime = PlayerPrefs.GetFloat("HighScoreTime", float.MaxValue);
+    
+        bool isNewHighScore = false;
+    
+        if (score > savedHighScore)
+        {
+            isNewHighScore = true;
+        }
+        else if (score == savedHighScore && gameTimer < savedHighScoreTime)
+        {
+            isNewHighScore = true;
+        }
+    
+        if (isNewHighScore)
+        {
+            PlayerPrefs.SetInt("HighScore", score);
+            PlayerPrefs.SetFloat("HighScoreTime", gameTimer - 5f);
+            PlayerPrefs.Save();
+        }
     }
         
     Boolean gameTimerCountDown() {
+        if (isGameOver)
+        {
+            return false;
+        }
         gameTimer += Time.deltaTime;
         if (gameTimer < 5f) {
             int timeText = 4 - (int)gameTimer;
@@ -313,11 +371,6 @@ public class PacStudentController : MonoBehaviour
                 dustParticles.Clear();
                     
                 life -= 1;
-                if (life == 0)
-                {
-                    print("gameOver");
-                    //Game over
-                }
             } else 
             {
                 return true;
@@ -332,6 +385,10 @@ public class PacStudentController : MonoBehaviour
         {
             for (int x = 0; x < 14; x++)
             {
+                if (levelMap[y, x] == 5)
+                {
+                    pellets += 4;
+                }
                 expandLevelMap[y, x] = levelMap[y, x];
                 
                 expandLevelMap[y, 27 - x] = levelMap[y, x];
@@ -346,6 +403,10 @@ public class PacStudentController : MonoBehaviour
         {
             expandLevelMap[14, x] = levelMap[14, x];
             expandLevelMap[14, 27 - x] = levelMap[14, x];
+            if (levelMap[14, x] == 5)
+            {
+                pellets++;
+            }
         }
         
         for (int y = 0; y < 29; y++)
@@ -355,7 +416,6 @@ public class PacStudentController : MonoBehaviour
             {
                 row += expandLevelMap[y, x] + " ";
             }
-            //Debug.Log(row);
         }
     }
 
@@ -423,7 +483,7 @@ public class PacStudentController : MonoBehaviour
                     string name = "";
                     name = ghostMap[i];
                     
-                    print(name);
+                    //print(name);
                     
                     GameObject ghostObj = GameObject.Find(name);
                     if (ghostObj != null) {
@@ -609,7 +669,7 @@ public class PacStudentController : MonoBehaviour
     void eatPellets(int arrayX, int arrayY)
     {
         score += 10;
-        
+        pellets--;
         expandLevelMap[arrayY, arrayX] = 0;
         float positionX = 0.2f + 0.04f * arrayX;
         float positionY = -0.2f - 0.04f * arrayY;

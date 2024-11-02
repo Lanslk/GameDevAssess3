@@ -10,7 +10,6 @@ public class UIManager : MonoBehaviour
 {
     public GameObject loadingPanel;
     public TextMeshProUGUI highScoreText;
-    public TextMeshProUGUI highScoreTimeText;
     private RectTransform loadingRect;
     private Tweener tweener;
     
@@ -55,10 +54,13 @@ public class UIManager : MonoBehaviour
     private void LoadHighScoreAndTime()
     {
         int highScore = PlayerPrefs.GetInt("HighScore", 0);
-        string highScoreTime = PlayerPrefs.GetString("HighScoreTime", "00:00:00");
         
-        highScoreText.text = "High Score: " + highScore + "\n" + "Time: " + highScoreTime;
-        //highScoreTimeText.text = "Time: " + highScoreTime;
+        float highScoreTime = PlayerPrefs.GetFloat("HighScoreTime", 0f);
+        
+        TimeSpan timeSpan = TimeSpan.FromSeconds(highScoreTime);
+        string timeFormatted = string.Format("{0:D2}:{1:D2}:{2:D2}", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
+        highScoreText.text = "High Score: " + highScore + "\n" + "Time: " + timeFormatted;
+        //print(highScoreText.text);
     }
     
     private void HideLoadingScreen()
@@ -84,7 +86,7 @@ public class UIManager : MonoBehaviour
     
     private IEnumerator ShowLoadingAndLoadScene(string sceneName, bool showLoadingScreen)
     {
-        print("Load:" + sceneName);
+        //print("Load:" + sceneName);
         // Show the Loading Screen (lerp into position)
         if (showLoadingScreen)
         {
@@ -119,14 +121,7 @@ public class UIManager : MonoBehaviour
     
     public void QuitGame()
     {
-        //UnityEditor.EditorApplication.isPlaying = false;
-        //Application.Quit();
-
-        
-        
         StartCoroutine(ShowLoadingAndLoadScene("StartScene", true));
-        //SceneManager.sceneLoaded += OnSceneLoaded;
-        //AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("StartScene", LoadSceneMode.Single);
     }
     
     public void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -146,6 +141,11 @@ public class UIManager : MonoBehaviour
 
         if (scene.name == "StartScene")
         {
+            GameObject highScoreTextObject = GameObject.Find("HighScoreText");
+            highScoreText = highScoreTextObject.GetComponent<TextMeshProUGUI>();
+            
+            LoadHighScoreAndTime();
+            
             GameObject buttonObject = GameObject.FindGameObjectWithTag("Level1Button");
             if (buttonObject != null)
             {
