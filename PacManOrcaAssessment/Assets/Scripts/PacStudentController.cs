@@ -199,7 +199,7 @@ public class PacStudentController : MonoBehaviour
         }
 
         // If PacStudent is not currently moving, check input and move if possible.
-        if (!isMoving && lastInput != Vector2.zero)
+        if (!isMoving && lastInput != Vector2.zero && !isGameOver)
         {
             if (lastInput != Vector2.zero && CanMoveToPosition((Vector2)transform.position + lastInput))
             {

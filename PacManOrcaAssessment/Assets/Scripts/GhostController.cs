@@ -163,7 +163,6 @@ public class GhostController : MonoBehaviour
             if (transform.gameObject.name == "Ship-blue")
             {
                 target = new Vector2(0.72f, -0.88f);
-                print(target);
             } else if (transform.gameObject.name == "Ship-green")
             {
                 target = new Vector2(0.72f, -0.64f);
@@ -191,9 +190,6 @@ public class GhostController : MonoBehaviour
                 {
                     lastInput = direction;
                     StartCoroutine(MoveToPosition(destination, moveSpeed, ""));
-                    if (transform.gameObject.name == "Ship-blue") {
-                        print("dest:" + destination);
-                    }
                     moveForward = true;
                     break;
                 }
@@ -573,14 +569,12 @@ public class GhostController : MonoBehaviour
         // check if go into respawning area
         if (nextX >= 13 && nextX <= 14 && nextY == -12) {
             if (nowPosX >= 13 && nowPosX <= 14 && nowPosY == -11) {
-                print("go back1");
                 return false;
             }
         }
         
         if (nextX >= 13 && nextX <= 14 && nextY == -16) {
             if (nowPosX >= 13 && nowPosX <= 14 && nowPosY == -17) {
-                print("go back2");
                 return false;
             }
         }
