@@ -76,7 +76,7 @@ public class UIManager : MonoBehaviour
     
     public void LoadSecondLevel()
     {
-        StartCoroutine(ShowLoadingAndLoadScene("Level2GameScene", true));
+        StartCoroutine(ShowLoadingAndLoadScene("InnovationScene", true));
     }
     
     public void ShowLoadingScreen()
@@ -126,7 +126,7 @@ public class UIManager : MonoBehaviour
     
     public void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "MainGameScene" || scene.name == "Level2GameScene")
+        if (scene.name == "MainGameScene" || scene.name == "InnovationScene")
         {
             GameObject quitButtonObject = GameObject.FindGameObjectWithTag("QuitButton");
             if (quitButtonObject != null)

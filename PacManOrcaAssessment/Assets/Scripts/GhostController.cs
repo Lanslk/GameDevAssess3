@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using TMPro;
 
 public class GhostController : MonoBehaviour
 {
@@ -47,11 +48,14 @@ public class GhostController : MonoBehaviour
 
     private Vector2 ghost4Target = Vector2.zero;
     
+    private TextMeshProUGUI gameOverText;
+    
     // Start is called before the first frame update
     void Start()
     {
         DoExpandMap();
         pacStudent = GameObject.Find("PacStudent");
+        gameOverText = GameObject.Find("GameOver").GetComponent<TextMeshProUGUI>();
     }
 
     // Update is called once per frame
@@ -60,6 +64,11 @@ public class GhostController : MonoBehaviour
         if (startTimer < 5f)
         {
             startTimer += Time.deltaTime;
+            return;
+        }
+        
+        if (gameOverText.enabled == true) 
+        {
             return;
         }
 
@@ -72,7 +81,13 @@ public class GhostController : MonoBehaviour
         {
             return;
         }
+        
         movement = RandomMovement();
+        
+        if (doRespawnArea())
+        {
+            return;
+        }
         
         //private Dictionary<int, Vector2> directionMap = new Dictionary<int, Vector2>{
         //{ 1, new Vector2(0.04f, 0)},{ 2, new Vector2(0, -0.04f)},{ 3, new Vector2(-0.04f, 0)},{ 4, new Vector2(0, 0.04f)}};
@@ -134,6 +149,79 @@ public class GhostController : MonoBehaviour
         }
         
     }
+    
+    bool doRespawnArea()
+    {
+        int nowPosX = (int)Math.Round((transform.position.x - 0.2f) / 0.04f);
+        int nowPosY = (int)Math.Round((transform.position.y + 0.2f) / 0.04f);
+        
+        if (nowPosX >= 11 && nowPosX <= 16 && nowPosY <= -13 && nowPosY >= -15) {
+            if (animatorController.GetInteger("Direction") == 7) {
+                return true;
+            }
+            Vector2 target = Vector2.zero;
+            if (transform.gameObject.name == "Ship-blue")
+            {
+                target = new Vector2(0.72f, -0.88f);
+                print(target);
+            } else if (transform.gameObject.name == "Ship-green")
+            {
+                target = new Vector2(0.72f, -0.64f);
+            } else if (transform.gameObject.name == "Ship-red")
+            {
+                target = new Vector2(0.76f, -0.64f);
+            }  else if (transform.gameObject.name == "Ship-yellow")
+            {
+                target = new Vector2(0.76f, -0.88f);
+            }
+            
+            
+            bool moveForward = false;
+            foreach (int move in movement)
+            {
+                Vector2 direction = directionMap[move];
+                Vector2 destination = (Vector2)transform.position + direction;
+                float distanceWithPacBefore = Vector2.Distance(target, transform.position);
+                float distanceWithPacAfter = Vector2.Distance(target, destination);
+                bool isBack = direction == -lastInput;
+                bool canMove = CanMoveToPosition(destination);
+                bool isCloser = distanceWithPacAfter < distanceWithPacBefore;
+                
+                if (!isBack && canMove && isCloser)
+                {
+                    lastInput = direction;
+                    StartCoroutine(MoveToPosition(destination, moveSpeed, ""));
+                    if (transform.gameObject.name == "Ship-blue") {
+                        print("dest:" + destination);
+                    }
+                    moveForward = true;
+                    break;
+                }
+            }
+            
+            if (!moveForward)
+            {
+                foreach (int move in movement)
+                {
+                    Vector2 direction = directionMap[move];
+                    Vector2 destination = (Vector2)transform.position + direction;
+                    bool isBack = direction == -lastInput;
+                    bool canMove = CanMoveToPosition(destination);
+                    
+                    if (!isBack && canMove)
+                    {
+                        lastInput = direction;
+                        StartCoroutine(MoveToPosition(destination, moveSpeed, ""));
+                        moveForward = true;
+                        break;
+                    }
+                }
+            }
+            
+            return true;
+        }
+        return false;
+    }
 
     void TargetGhost4()
     {
@@ -144,10 +232,6 @@ public class GhostController : MonoBehaviour
         bool isDownLeft = nowX <= 0.72f && nowY < -0.68f;
         bool isTopRight = nowX > 0.72f && nowY >= -0.68f;
         bool isDownRight = nowX > 0.72f && nowY < -0.68f;
-        
-        Debug.Log(transform.position);
-        Debug.Log(isDownRight);
-        Debug.Log(isTopRight);
         
         Vector2 topLeftPos = new Vector2(0.24f, -0.24f);
         Vector2 downLeftPos = new Vector2(0.24f, -1.24f);
@@ -291,7 +375,7 @@ public class GhostController : MonoBehaviour
 
     void MoveDead()
     {
-        
+        StartCoroutine(MoveToPosition(new Vector2(0.72f, -0.76f), moveSpeed, "dead"));
     }
     
     void MoveGhost3()
@@ -343,6 +427,25 @@ public class GhostController : MonoBehaviour
                 break;
             }
         }
+        
+        if (!moveForward)
+        {
+            foreach (int move in movement)
+            {
+                Vector2 direction = directionMap[move];
+                Vector2 destination = (Vector2)transform.position + direction;
+                bool isBack = direction == -lastInput;
+                bool canMove = CanMoveToPosition(destination);
+                
+                if (!isBack && canMove)
+                {
+                    lastInput = direction;
+                    StartCoroutine(MoveToPosition(destination, moveSpeed, "ghost2"));
+                    moveForward = true;
+                    break;
+                }
+            }
+        }
 
         if (!moveForward)
         {
@@ -372,6 +475,25 @@ public class GhostController : MonoBehaviour
                 StartCoroutine(MoveToPosition(destination, moveSpeed, "ghost1"));
                 moveForward = true;
                 break;
+            }
+        }
+        
+        if (!moveForward)
+        {
+            foreach (int move in movement)
+            {
+                Vector2 direction = directionMap[move];
+                Vector2 destination = (Vector2)transform.position + direction;
+                bool isBack = direction == -lastInput;
+                bool canMove = CanMoveToPosition(destination);
+                
+                if (!isBack && canMove)
+                {
+                    lastInput = direction;
+                    StartCoroutine(MoveToPosition(destination, moveSpeed, "ghost1"));
+                    moveForward = true;
+                    break;
+                }
             }
         }
 
@@ -436,12 +558,31 @@ public class GhostController : MonoBehaviour
     {
         int nextX = (int)Math.Round((position.x - 0.2f) / 0.04f);
         int nextY = (int)Math.Round((position.y + 0.2f) / 0.04f);
+        
+        int nowPosX = (int)Math.Round((transform.position.x - 0.2f) / 0.04f);
+        int nowPosY = (int)Math.Round((transform.position.y + 0.2f) / 0.04f);
+                
         int arrayX = Math.Abs(nextX);
         int arrayY = Math.Abs(nextY);
         
         if (nextY == -14 && (nextX == -1 || nextX == 28))
         {
             return false;
+        }
+        
+        // check if go into respawning area
+        if (nextX >= 13 && nextX <= 14 && nextY == -12) {
+            if (nowPosX >= 13 && nowPosX <= 14 && nowPosY == -11) {
+                print("go back1");
+                return false;
+            }
+        }
+        
+        if (nextX >= 13 && nextX <= 14 && nextY == -16) {
+            if (nowPosX >= 13 && nowPosX <= 14 && nowPosY == -17) {
+                print("go back2");
+                return false;
+            }
         }
         
         int nextGrid = expandLevelMap[arrayY, arrayX];

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class PacStudentController : MonoBehaviour
@@ -90,6 +91,8 @@ public class PacStudentController : MonoBehaviour
     private int pellets = 0;
     
     private float gameTimer = 0f;
+    private bool isGameOver = false;
+    private float gameOverTimer = 0f;
     
     void Start()
     {
@@ -135,7 +138,23 @@ public class PacStudentController : MonoBehaviour
             return;
         }
         
+        if (isGameOver)
+        {
+            if (gameOverTimer > 3f) {
+                GameObject quitButtonObject = GameObject.Find("QuitButton");
+                Button quitButton = quitButtonObject.GetComponent<Button>();
+                quitButton.onClick.Invoke();
+                gameObject.SetActive(false);
+            } else
+            {
+                gameOverTimer += Time.deltaTime;
+                return;
+            }
+        }
+        
         if (gameTimerCountDown()) { return;}
+        
+        
         
         UpdateScoreUI();
 
@@ -216,15 +235,35 @@ public class PacStudentController : MonoBehaviour
     void gameOverCheck()
     {
         if (life == 0 || pellets == 0) {
-            print("Game Over");
-            if (life == 0)
-            {
-                //TODO all the scirpts will not work!!!
-                gameObject.SetActive(false);
-            }
             gameOverText.enabled = true;
+            CheckAndSaveHighScore();
+            isGameOver = true;
         }
     }
+    
+    void CheckAndSaveHighScore()
+    {
+        int savedHighScore = PlayerPrefs.GetInt("HighScore", 0);
+        float savedHighScoreTime = PlayerPrefs.GetFloat("HighScoreTime", float.MaxValue);
+    
+        bool isNewHighScore = false;
+    
+        if (score > savedHighScore)
+        {
+            isNewHighScore = true;
+        }
+        else if (score == savedHighScore && gameTimer < savedHighScoreTime)
+        {
+            isNewHighScore = true;
+        }
+    
+        if (isNewHighScore)
+        {
+            PlayerPrefs.SetInt("HighScore", score);
+            PlayerPrefs.SetFloat("HighScoreTime", gameTimer - 5f);
+            PlayerPrefs.Save();
+        }
+        }
         
     Boolean gameTimerCountDown() {
         gameTimer += Time.deltaTime;
@@ -385,8 +424,9 @@ public class PacStudentController : MonoBehaviour
             isCollide = true;
             StartCooldownCollide = true;  
     
+            
             backDestination = (Vector2)other.gameObject.transform.position - currentInput;
-    
+            
             StartCoroutine(MoveToPosition(backDestination, moveBackSpeed, "moveBack"));
             
             dustParticlesCollide.transform.position = new Vector3(collidePosition.x, collidePosition.y, 0f);
@@ -398,6 +438,9 @@ public class PacStudentController : MonoBehaviour
             score += 100;
             Destroy(other.gameObject);
         } else if (other.gameObject.tag == "Ghost") {
+            if (StartCoolDownDie) {
+                return;
+            }
             Animator collideGhostAnimator = other.gameObject.GetComponent<Animator>();
             if (collideGhostAnimator != null)
             {
@@ -440,9 +483,7 @@ public class PacStudentController : MonoBehaviour
                 if (ghostDieTimer[i] > 5f) {
                     string name = "";
                     name = ghostMap[i];
-                    
-                    print(name);
-                    
+
                     GameObject ghostObj = GameObject.Find(name);
                     if (ghostObj != null) {
                         Animator ghostAnimator = ghostObj.GetComponent<Animator>();
@@ -626,13 +667,14 @@ public class PacStudentController : MonoBehaviour
     
     void eatPellets(int arrayX, int arrayY)
     {
-        score += 10;
-        pellets--;
-        expandLevelMap[arrayY, arrayX] = 0;
         float positionX = 0.2f + 0.04f * arrayX;
         float positionY = -0.2f - 0.04f * arrayY;
         GameObject pelletObj = FindGameObjectByTagAndPosition("Pellet", new Vector3(positionX, positionY, 0));
         Destroy(pelletObj);
+        score += 10;
+        pellets--;
+        expandLevelMap[arrayY, arrayX] = 0;
+        
     }
     
     void UpdateScoreUI()

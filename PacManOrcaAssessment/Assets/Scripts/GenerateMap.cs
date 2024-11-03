@@ -89,7 +89,7 @@ public class GenerateMap : MonoBehaviour
                 }
 
                 // Instantiate the corresponding tile prefab
-                Vector3 position = new Vector3(x * tileSize, -y * tileSize, 0); // Calculate position
+                Vector3 position = new Vector3(x * tileSize + 0.2f, -y * tileSize - 0.2f, 0); // Calculate position
                 GameObject tilePrefab = Instantiate(tilePrefabs[tileType - 1], position, rotation, transform); // Instantiate prefab
                 tilePrefab.transform.SetParent(TopLeft.transform);
             }
@@ -99,19 +99,19 @@ public class GenerateMap : MonoBehaviour
         GameObject TopRight = Instantiate(TopLeft);
         TopRight.name = "TopRight";
         TopRight.transform.localScale = new Vector3(-1, 1, 1);
-        TopRight.transform.localPosition = new Vector3(27 * tileSize, 0, 0);
+        TopRight.transform.localPosition = new Vector3(27 * tileSize + 0.40f, 0, 0);
         TopRight.transform.SetParent(this.transform);
         
         GameObject DownRight = Instantiate(TopLeft);
         DownRight.name = "DownRight";
         DownRight.transform.localScale = new Vector3(-1, -1, 1);
-        DownRight.transform.localPosition = new Vector3(27 * tileSize, -28 * tileSize, 0);
+        DownRight.transform.localPosition = new Vector3(27 * tileSize + 0.40f, -28 * tileSize - 0.40f, 0);
         DownRight.transform.SetParent(this.transform);
         
         GameObject DownLeft = Instantiate(TopLeft);
         DownLeft.name = "DownLeft";
         DownLeft.transform.localScale = new Vector3(1, -1, 1);
-        DownLeft.transform.localPosition = new Vector3(0, -28 * tileSize, 0);
+        DownLeft.transform.localPosition = new Vector3(0, -28 * tileSize - 0.40f, 0);
         DownLeft.transform.SetParent(this.transform);
     }
 
